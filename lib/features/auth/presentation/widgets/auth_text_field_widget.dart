@@ -26,6 +26,7 @@ class AuthTextFieldWidget extends StatelessWidget {
       required: true,
       controller: controller,
       obscure: isPassword,
+      autocorrect: false,
       keyboardType: keyboardType,
       validator: validator,
       prefix: icon == null ? null : Icon(icon, size: 19),

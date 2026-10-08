@@ -44,6 +44,9 @@ class AppTextField extends StatefulWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final bool obscure;
+
+  /// false — telefon klaviaturasi so'zni to'g'rilamaydi/taklif qilmaydi (kod, login)
+  final bool autocorrect;
   final bool readOnly;
   final bool enabled;
   final int maxLines;
@@ -68,6 +71,7 @@ class AppTextField extends StatefulWidget {
     this.keyboardType,
     this.inputFormatters,
     this.obscure = false,
+    this.autocorrect = true,
     this.readOnly = false,
     this.enabled = true,
     this.maxLines = 1,
@@ -103,6 +107,9 @@ class _AppTextFieldState extends State<AppTextField> {
           keyboardType: widget.keyboardType,
           inputFormatters: widget.inputFormatters,
           obscureText: _hidden,
+          autocorrect: widget.autocorrect,
+          enableSuggestions: widget.autocorrect,
+          textCapitalization: TextCapitalization.none,
           readOnly: widget.readOnly,
           enabled: widget.enabled,
           maxLines: widget.obscure ? 1 : widget.maxLines,
