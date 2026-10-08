@@ -1,0 +1,9 @@
+export 'all_product_request.dart';
+export 'create_product_request.dart';
+export 'delete_product_request.dart';
+export 'export_products_request.dart';
+export 'import_products_request.dart';
+export 'generated_code_request.dart';
+export 'stock_update_request.dart';
+export 'update_product_request.dart';
+export 'global_product_search_request.dart';
