@@ -36,6 +36,7 @@ class CreateProductBloc extends Bloc<CreateProductEvent, CreateProductState> {
         qrCode: event.qrCode,
         firmaId: event.firmaId,
         wholesalePrice: event.wholesalePrice,
+        meterPrice: event.meterPrice,
         minStock: event.minStock,
       ),
     );

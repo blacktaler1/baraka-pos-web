@@ -1,3 +1,4 @@
+import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:cross_file/cross_file.dart';
 
 import 'package:baraka_pos/shared/design/design.dart';
@@ -14,7 +15,7 @@ import '../../../global/global.dart';
 import '../../../media/presentation/blocs/post_media_bloc/post_media_bloc.dart';
 import '../blocs/blocs.dart';
 
-const productUnits = ["kg", "dona", "litr", "metr", "pack"];
+const productUnits = ["kg", "dona", "litr", "metr", "pack", "roll"];
 
 Future<void> showEditProductPanel(
   BuildContext context, {
@@ -62,6 +63,11 @@ class _EditProductModalState extends State<EditProductModal> {
         ? ""
         : formatCurrency("$_originalWholesale", withCurrency: false),
   );
+  late final meterPriceCtrl = TextEditingController(
+    text: _originalMeterPrice == null
+        ? ""
+        : formatCurrency("$_originalMeterPrice", withCurrency: false),
+  );
   late final minStockCtrl = TextEditingController(
     text: _originalMinStock == null ? "" : _trimZeros(_originalMinStock!),
   );
@@ -69,6 +75,14 @@ class _EditProductModalState extends State<EditProductModal> {
   int? get _originalWholesale => widget.product.wholesalePrice.isEmpty
       ? null
       : parseAmount(widget.product.wholesalePrice).round();
+
+  int? get _originalMeterPrice => widget.product.meterPrice.isEmpty
+      ? null
+      : parseAmount(widget.product.meterPrice).round();
+
+  int? get _meterPriceValue => meterPriceCtrl.text.trim().isEmpty
+      ? null
+      : parseAmountInt(meterPriceCtrl.text);
 
   double? get _originalMinStock => widget.product.minStock.isEmpty
       ? null
@@ -109,6 +123,7 @@ class _EditProductModalState extends State<EditProductModal> {
       packCtrl,
       wholesaleCtrl,
       minStockCtrl,
+      meterPriceCtrl,
     ]) {
       c.addListener(checkChanges);
     }
@@ -125,6 +140,7 @@ class _EditProductModalState extends State<EditProductModal> {
       packCtrl,
       wholesaleCtrl,
       minStockCtrl,
+      meterPriceCtrl,
     ]) {
       c.dispose();
     }
@@ -141,8 +157,9 @@ class _EditProductModalState extends State<EditProductModal> {
         currentCost != p.cost.toString() ||
         stockCtrl.text.trim() != p.stock.toString() ||
         qrCodeCtrl.text.trim() != p.qrCode ||
-        (selectedUnit == "pack" &&
+        ((selectedUnit == "pack" || selectedUnit == "roll") &&
             packCtrl.text.trim() != p.packSize.toString()) ||
+        _meterPriceValue != _originalMeterPrice ||
         selectedUnit != p.unit ||
         selectedCategoryId != p.category.id ||
         selectedFirmaId != p.firma?.id ||
@@ -286,22 +303,31 @@ class _EditProductModalState extends State<EditProductModal> {
                           for (final u in productUnits)
                             DropdownMenuItem(
                               value: u,
-                              child: Text(u == "pack" ? tr("pack") : u),
+                              child: Text(unitLabel(u)),
                             ),
                         ],
                         onChanged: (v) {
                           setState(() {
                             selectedUnit = v;
-                            if (v != "pack") packCtrl.clear();
+                            if (v != "pack" && v != "roll") packCtrl.clear();
                           });
                           checkChanges();
                         },
                       ),
                     ]),
-                    if (selectedUnit == "pack")
+                    if (selectedUnit == "pack" || selectedUnit == "roll")
                       AppTextField(
-                        label: "${tr("pack")} ${tr("stock")}",
+                        label: selectedUnit == "roll"
+                            ? tr("meters_in_piece")
+                            : "${tr("pack")} ${tr("stock")}",
                         controller: packCtrl,
+                        keyboardType: TextInputType.number,
+                      ),
+                    if (selectedUnit == "roll")
+                      AppTextField(
+                        label: tr("meter_price"),
+                        helper: tr("meter_price_hint"),
+                        controller: meterPriceCtrl,
                         keyboardType: TextInputType.number,
                       ),
                     AppTextField(
@@ -426,7 +452,7 @@ class _EditProductModalState extends State<EditProductModal> {
             categoryId:
                 p.category.id != selectedCategoryId ? selectedCategoryId! : 0,
             unit: p.unit != selectedUnit ? selectedUnit! : "",
-            packSize: selectedUnit == "pack" &&
+            packSize: (selectedUnit == "pack" || selectedUnit == "roll") &&
                     p.packSize.toString() != packCtrl.text.trim()
                 ? int.parse(packCtrl.text.trim())
                 : 0,
@@ -437,6 +463,7 @@ class _EditProductModalState extends State<EditProductModal> {
             firmaId: p.firma?.id != selectedFirmaId ? selectedFirmaId! : 0,
             wholesalePrice: _wholesaleValue,
             minStock: _minStockValue,
+            meterPrice: selectedUnit == "roll" ? _meterPriceValue : null,
           ),
         );
   }

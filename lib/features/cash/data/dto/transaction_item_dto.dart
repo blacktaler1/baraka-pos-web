@@ -20,6 +20,8 @@ final class TransactionItemDto extends JsonDto<TransactionItemModel> {
 
   int get packSize => json.integer('pack_size');
 
+  bool get isPieceSale => json['is_piece_sale'] == true;
+
   String get quantity => json.text('quantity', fallback: "0");
 
   String get subtotal => json.text('subtotal', fallback: "0");
@@ -38,6 +40,7 @@ final class TransactionItemDto extends JsonDto<TransactionItemModel> {
       subtotal: subtotal,
       status: status,
       packSize: packSize,
+      isPieceSale: isPieceSale,
     );
   }
 }

@@ -14,6 +14,7 @@ final class CreateProductRequest extends RemoteRequest<CreateProductPayload> {
   final List imageIds;
   final int firmaId;
   final int? wholesalePrice;
+  final int? meterPrice;
   final double? minStock;
   CreateProductRequest.fromPayload(super.payload)
       : title = payload.title,
@@ -27,6 +28,7 @@ final class CreateProductRequest extends RemoteRequest<CreateProductPayload> {
         imageIds = payload.imagesIds,
         firmaId = payload.firmaId,
         wholesalePrice = payload.wholesalePrice,
+        meterPrice = payload.meterPrice,
         minStock = payload.minStock,
         super.fromPayload();
 
@@ -43,6 +45,7 @@ final class CreateProductRequest extends RemoteRequest<CreateProductPayload> {
         "qr_code": qrCode,
         if (firmaId != 0) "firma_id": firmaId,
         if (wholesalePrice != null) "wholesale_price": wholesalePrice,
+        if (meterPrice != null) "meter_price": meterPrice,
         if (minStock != null) "min_stock": minStock,
       };
 

@@ -10,6 +10,7 @@ class ProductTable extends Table {
   TextColumn get categoryTitle => text()();
   TextColumn get unit => text()();
   IntColumn get packSize => integer().nullable()();
+  TextColumn get meterPrice => text().withDefault(const Constant(''))();
   TextColumn get qrcode => text()();
   IntColumn get warehouse => integer()();
   TextColumn get images => text()(); // JSON string

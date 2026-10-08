@@ -481,5 +481,12 @@
   "point_camera_at_barcode": "Kamerani shtrix-kodga qarating",
   "camera_permission_denied": "Kameraga ruxsat berilmadi. Brauzer sozlamalarida kameraga ruxsat bering.",
   "camera_error": "Kamerani ochib bo'lmadi",
-  "done": "Tayyor"
+  "done": "Tayyor",
+  "roll": "Metr (dona)",
+  "by_meter": "Metr",
+  "by_piece": "Dona",
+  "meters_in_piece": "1 donada necha metr",
+  "roll_stock_hint": "Zaxira donada kiritiladi, masalan 2 ta 40 metrlik",
+  "meter_price": "1 metr narxi",
+  "meter_price_hint": "Bo'sh qoldirilsa: dona narxi / metr soni"
 }

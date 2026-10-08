@@ -1,3 +1,4 @@
+import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:baraka_pos/features/cash/cash.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -61,6 +62,12 @@ class PdfReceiptService {
         ],
       );
 
+  /// Bir birlik narxi (metr yoki dona) — jami / miqdor
+  static String _unitPrice(String subtotal, String quantity) {
+    final q = parseAmount(quantity);
+    return q == 0 ? subtotal : (parseAmount(subtotal) / q).toStringAsFixed(0);
+  }
+
   static String _date(String raw) {
     final d = DateTime.tryParse(raw)?.toLocal();
     return d == null ? raw : DateFormat('dd.MM.yyyy HH:mm').format(d);
@@ -98,9 +105,8 @@ class PdfReceiptService {
                   children: [
                     _line(item.productTitle, bold: true),
                     _kv(
-                      "${parseAmount(item.quantity)} ${item.productUnit.tr()}"
-                      "${item.productUnit == "pack" ? " (${item.packSize * parseAmount(item.quantity)} ta)" : ""}"
-                      " x ${_fmt(item.productPrice.toString())}",
+                      "${saleQuantityLabel(quantity: item.quantity, unit: item.productUnit, isPieceSale: item.isPieceSale, packSize: item.packSize)}"
+                      " x ${_fmt(_unitPrice(item.subtotal, item.quantity))}",
                       _fmt(item.subtotal),
                     ),
                   ],

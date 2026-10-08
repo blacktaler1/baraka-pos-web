@@ -17,6 +17,7 @@ class CashProductLocalSource {
       categoryTitle: Value(product.categoryTitle),
       unit: Value(product.unit),
       packSize: Value(product.packSize),
+      meterPrice: Value(product.meterPrice),
       qrcode: Value(product.qrcode),
       warehouse: Value(product.warehouse),
       images: Value(product.images),
@@ -89,6 +90,7 @@ class CashProductLocalSource {
             warehouse: e.warehouse,
             images: e.images,
             packSize: e.packSize!,
+            meterPrice: e.meterPrice,
           ),
         )
         .toList();

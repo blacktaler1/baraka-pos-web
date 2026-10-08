@@ -1,3 +1,6 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../blocs/cart_bloc/cart_bloc.dart';
+import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:baraka_pos/shared/design/design.dart';
 import 'package:baraka_pos/features/cash/presentation/widgets/product_row.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -63,15 +66,75 @@ class OrderDetailsPanel extends StatelessWidget {
             key: ValueKey(item.productId),
             id: item.productId,
             title: item.title,
-            stock: item.stock.toString(),
+            stock: item.maxQuantity.toString(),
             cash: true,
             price: item.price,
-            unit: item.unit,
+            unit: item.saleUnit,
+            stockLabel:
+                item.isRoll ? formatRollStock(item.stock, item.packSize) : null,
+            modeToggle: item.isRoll ? _RollModeToggle(item: item) : null,
             quantity: item.quantity,
             onDelete: () => removeFromOrder(item.productId),
             updateQuantity: updateItemQuantity,
           ),
       ],
+    );
+  }
+}
+
+/// Rulon qatori: metrlab yoki butun dona sotish tanlovi
+class _RollModeToggle extends StatelessWidget {
+  final OrderItem item;
+
+  const _RollModeToggle({required this.item});
+
+  @override
+  Widget build(BuildContext context) {
+    final bloc = context.read<CartBloc>();
+    Widget chip(String label, bool selected, bool enabled, VoidCallback onTap) {
+      final fg = selected
+          ? Colors.white
+          : enabled
+              ? AppColors.ink
+              : AppColors.textTertiary;
+      return Padding(
+        padding: const EdgeInsets.only(right: AppSpacing.xxs),
+        child: Material(
+          color: selected ? AppColors.primary : AppColors.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            side: BorderSide(
+              color: selected ? AppColors.primary : AppColors.borderStrong,
+            ),
+          ),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(AppRadius.sm),
+            onTap: enabled && !selected ? onTap : null,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              child: Text(
+                label,
+                style: AppText.caption.copyWith(
+                  color: fg,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.xxs),
+      child: Wrap(
+        children: [
+          chip("${tr("by_meter")} · ${item.packSize} m", item.byPiece, true,
+              () => bloc.add(ToggleItemByPieceEvent(item.productId, true))),
+          chip(tr("by_piece"), !item.byPiece, item.fullPieces >= 1,
+              () => bloc.add(ToggleItemByPieceEvent(item.productId, false))),
+        ],
+      ),
     );
   }
 }

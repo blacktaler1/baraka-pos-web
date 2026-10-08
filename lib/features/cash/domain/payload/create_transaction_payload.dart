@@ -46,6 +46,7 @@ final class CreateTransactionPayload extends Payload {
                 productId: _toInt(e["product_id"]),
                 quantity: e["quantity"],
                 price: _toInt(e["price"]),
+                isPiece: e["is_piece"] == true,
               ),
             )
             .toList(),

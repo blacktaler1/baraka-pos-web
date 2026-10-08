@@ -27,6 +27,8 @@ final class CashProductDto extends JsonDto<CashProductModel> {
 
   int get packSize => json.integer('pack_size');
 
+  String get meterPrice => json.text('meter_price');
+
   String get qrcode => json.text('qr_code');
 
   int get warehouse => json.integer('warehouse');
@@ -49,6 +51,7 @@ final class CashProductDto extends JsonDto<CashProductModel> {
       categoryTitle: categoryTitle,
       unit: unit,
       packSize: packSize,
+      meterPrice: meterPrice,
       qrcode: qrcode,
       warehouse: warehouse,
       images: images,

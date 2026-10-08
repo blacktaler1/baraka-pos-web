@@ -10,6 +10,9 @@ final class CashProductModel extends Model {
   final String categoryTitle;
   final String unit;
   final int packSize;
+
+  /// Rulon uchun 1 metr narxi (bo'sh — dona narxi / metr)
+  final String meterPrice;
   final String qrcode;
   final int warehouse;
   final String images;
@@ -24,6 +27,7 @@ final class CashProductModel extends Model {
     required this.categoryTitle,
     required this.unit,
     required this.packSize,
+    this.meterPrice = "",
     required this.qrcode,
     required this.warehouse,
     required this.images,
@@ -40,6 +44,7 @@ final class CashProductModel extends Model {
         "title: $categoryTitle",
         "unit: $unit",
         "pack_size: $packSize",
+        "meter_price: $meterPrice",
         "qr_code: $qrcode",
         "warehouse: $warehouse",
         "images: $images",

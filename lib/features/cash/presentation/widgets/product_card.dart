@@ -1,3 +1,4 @@
+import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
 import 'package:baraka_pos/shared/design/design.dart';
 import 'package:flutter/material.dart';
@@ -92,7 +93,9 @@ class _ProductCardState extends State<ProductCard> {
                       top: 6,
                       left: 6,
                       child: _StockBadge(
-                        text: "$stockText ${p.unit}",
+                        text: isRollUnit(p.unit)
+                            ? formatRollStock(p.stock, p.packSize)
+                            : "$stockText ${unitLabel(p.unit)}",
                         out: outOfStock,
                       ),
                     ),
@@ -119,7 +122,11 @@ class _ProductCardState extends State<ProductCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      p.unit == "pack" ? "${p.title} (${p.packSize})" : p.title,
+                      p.unit == "pack"
+                          ? "${p.title} (${p.packSize})"
+                          : isRollUnit(p.unit)
+                              ? "${p.title} (${p.packSize} m)"
+                              : p.title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppText.bodyStrong,

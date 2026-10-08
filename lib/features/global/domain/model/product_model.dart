@@ -15,6 +15,7 @@ final class ProductModel extends Model {
   final CategoryModel category;
   final String unit;
   final int packSize;
+  final String meterPrice;
   final ImageCollection imageCollection;
   final String qrCode;
   final int warehouseId;
@@ -31,6 +32,7 @@ final class ProductModel extends Model {
     this.minStock = "",
     required this.category,
     required this.packSize,
+    this.meterPrice = "",
     required this.unit,
     required this.imageCollection,
     required this.qrCode,
@@ -50,6 +52,7 @@ final class ProductModel extends Model {
         "min_stock: $minStock",
         "category: $category",
         "pack_size: $packSize",
+        "meter_price: $meterPrice",
         "unit: $unit",
         "collection: $imageCollection",
         "qrCode: $qrCode",

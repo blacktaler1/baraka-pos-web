@@ -25,7 +25,7 @@ class PosLocalDatabase extends _$PosLocalDatabase {
   static final PosLocalDatabase instance = PosLocalDatabase._internal();
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onCreate: (m) async {
@@ -63,6 +63,10 @@ class PosLocalDatabase extends _$PosLocalDatabase {
             if (!exists) {
               await m.addColumn(productTable, productTable.packSize);
             }
+          }
+
+          if (from < 9) {
+            await m.addColumn(productTable, productTable.meterPrice);
           }
 
           if (from < 8) {

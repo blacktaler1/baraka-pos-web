@@ -1227,6 +1227,14 @@ class $ProductTableTable extends ProductTable
   late final GeneratedColumn<int> packSize = GeneratedColumn<int>(
       'pack_size', aliasedName, true,
       type: DriftSqlType.int, requiredDuringInsert: false);
+  static const VerificationMeta _meterPriceMeta =
+      const VerificationMeta('meterPrice');
+  @override
+  late final GeneratedColumn<String> meterPrice = GeneratedColumn<String>(
+      'meter_price', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
   static const VerificationMeta _qrcodeMeta = const VerificationMeta('qrcode');
   @override
   late final GeneratedColumn<String> qrcode = GeneratedColumn<String>(
@@ -1254,6 +1262,7 @@ class $ProductTableTable extends ProductTable
         categoryTitle,
         unit,
         packSize,
+        meterPrice,
         qrcode,
         warehouse,
         images
@@ -1319,6 +1328,12 @@ class $ProductTableTable extends ProductTable
       context.handle(_packSizeMeta,
           packSize.isAcceptableOrUnknown(data['pack_size']!, _packSizeMeta));
     }
+    if (data.containsKey('meter_price')) {
+      context.handle(
+          _meterPriceMeta,
+          meterPrice.isAcceptableOrUnknown(
+              data['meter_price']!, _meterPriceMeta));
+    }
     if (data.containsKey('qrcode')) {
       context.handle(_qrcodeMeta,
           qrcode.isAcceptableOrUnknown(data['qrcode']!, _qrcodeMeta));
@@ -1364,6 +1379,8 @@ class $ProductTableTable extends ProductTable
           .read(DriftSqlType.string, data['${effectivePrefix}unit'])!,
       packSize: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}pack_size']),
+      meterPrice: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}meter_price'])!,
       qrcode: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}qrcode'])!,
       warehouse: attachedDatabase.typeMapping
@@ -1390,6 +1407,7 @@ class ProductTableData extends DataClass
   final String categoryTitle;
   final String unit;
   final int? packSize;
+  final String meterPrice;
   final String qrcode;
   final int warehouse;
   final String images;
@@ -1403,6 +1421,7 @@ class ProductTableData extends DataClass
       required this.categoryTitle,
       required this.unit,
       this.packSize,
+      required this.meterPrice,
       required this.qrcode,
       required this.warehouse,
       required this.images});
@@ -1420,6 +1439,7 @@ class ProductTableData extends DataClass
     if (!nullToAbsent || packSize != null) {
       map['pack_size'] = Variable<int>(packSize);
     }
+    map['meter_price'] = Variable<String>(meterPrice);
     map['qrcode'] = Variable<String>(qrcode);
     map['warehouse'] = Variable<int>(warehouse);
     map['images'] = Variable<String>(images);
@@ -1439,6 +1459,7 @@ class ProductTableData extends DataClass
       packSize: packSize == null && nullToAbsent
           ? const Value.absent()
           : Value(packSize),
+      meterPrice: Value(meterPrice),
       qrcode: Value(qrcode),
       warehouse: Value(warehouse),
       images: Value(images),
@@ -1458,6 +1479,7 @@ class ProductTableData extends DataClass
       categoryTitle: serializer.fromJson<String>(json['categoryTitle']),
       unit: serializer.fromJson<String>(json['unit']),
       packSize: serializer.fromJson<int?>(json['packSize']),
+      meterPrice: serializer.fromJson<String>(json['meterPrice']),
       qrcode: serializer.fromJson<String>(json['qrcode']),
       warehouse: serializer.fromJson<int>(json['warehouse']),
       images: serializer.fromJson<String>(json['images']),
@@ -1476,6 +1498,7 @@ class ProductTableData extends DataClass
       'categoryTitle': serializer.toJson<String>(categoryTitle),
       'unit': serializer.toJson<String>(unit),
       'packSize': serializer.toJson<int?>(packSize),
+      'meterPrice': serializer.toJson<String>(meterPrice),
       'qrcode': serializer.toJson<String>(qrcode),
       'warehouse': serializer.toJson<int>(warehouse),
       'images': serializer.toJson<String>(images),
@@ -1492,6 +1515,7 @@ class ProductTableData extends DataClass
           String? categoryTitle,
           String? unit,
           Value<int?> packSize = const Value.absent(),
+          String? meterPrice,
           String? qrcode,
           int? warehouse,
           String? images}) =>
@@ -1505,6 +1529,7 @@ class ProductTableData extends DataClass
         categoryTitle: categoryTitle ?? this.categoryTitle,
         unit: unit ?? this.unit,
         packSize: packSize.present ? packSize.value : this.packSize,
+        meterPrice: meterPrice ?? this.meterPrice,
         qrcode: qrcode ?? this.qrcode,
         warehouse: warehouse ?? this.warehouse,
         images: images ?? this.images,
@@ -1524,6 +1549,8 @@ class ProductTableData extends DataClass
           : this.categoryTitle,
       unit: data.unit.present ? data.unit.value : this.unit,
       packSize: data.packSize.present ? data.packSize.value : this.packSize,
+      meterPrice:
+          data.meterPrice.present ? data.meterPrice.value : this.meterPrice,
       qrcode: data.qrcode.present ? data.qrcode.value : this.qrcode,
       warehouse: data.warehouse.present ? data.warehouse.value : this.warehouse,
       images: data.images.present ? data.images.value : this.images,
@@ -1542,6 +1569,7 @@ class ProductTableData extends DataClass
           ..write('categoryTitle: $categoryTitle, ')
           ..write('unit: $unit, ')
           ..write('packSize: $packSize, ')
+          ..write('meterPrice: $meterPrice, ')
           ..write('qrcode: $qrcode, ')
           ..write('warehouse: $warehouse, ')
           ..write('images: $images')
@@ -1551,7 +1579,7 @@ class ProductTableData extends DataClass
 
   @override
   int get hashCode => Object.hash(id, title, cost, price, wholesalePrice, stock,
-      categoryTitle, unit, packSize, qrcode, warehouse, images);
+      categoryTitle, unit, packSize, meterPrice, qrcode, warehouse, images);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1565,6 +1593,7 @@ class ProductTableData extends DataClass
           other.categoryTitle == this.categoryTitle &&
           other.unit == this.unit &&
           other.packSize == this.packSize &&
+          other.meterPrice == this.meterPrice &&
           other.qrcode == this.qrcode &&
           other.warehouse == this.warehouse &&
           other.images == this.images);
@@ -1580,6 +1609,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
   final Value<String> categoryTitle;
   final Value<String> unit;
   final Value<int?> packSize;
+  final Value<String> meterPrice;
   final Value<String> qrcode;
   final Value<int> warehouse;
   final Value<String> images;
@@ -1593,6 +1623,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
     this.categoryTitle = const Value.absent(),
     this.unit = const Value.absent(),
     this.packSize = const Value.absent(),
+    this.meterPrice = const Value.absent(),
     this.qrcode = const Value.absent(),
     this.warehouse = const Value.absent(),
     this.images = const Value.absent(),
@@ -1607,6 +1638,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
     required String categoryTitle,
     required String unit,
     this.packSize = const Value.absent(),
+    this.meterPrice = const Value.absent(),
     required String qrcode,
     required int warehouse,
     required String images,
@@ -1629,6 +1661,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
     Expression<String>? categoryTitle,
     Expression<String>? unit,
     Expression<int>? packSize,
+    Expression<String>? meterPrice,
     Expression<String>? qrcode,
     Expression<int>? warehouse,
     Expression<String>? images,
@@ -1643,6 +1676,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
       if (categoryTitle != null) 'category_title': categoryTitle,
       if (unit != null) 'unit': unit,
       if (packSize != null) 'pack_size': packSize,
+      if (meterPrice != null) 'meter_price': meterPrice,
       if (qrcode != null) 'qrcode': qrcode,
       if (warehouse != null) 'warehouse': warehouse,
       if (images != null) 'images': images,
@@ -1659,6 +1693,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
       Value<String>? categoryTitle,
       Value<String>? unit,
       Value<int?>? packSize,
+      Value<String>? meterPrice,
       Value<String>? qrcode,
       Value<int>? warehouse,
       Value<String>? images}) {
@@ -1672,6 +1707,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
       categoryTitle: categoryTitle ?? this.categoryTitle,
       unit: unit ?? this.unit,
       packSize: packSize ?? this.packSize,
+      meterPrice: meterPrice ?? this.meterPrice,
       qrcode: qrcode ?? this.qrcode,
       warehouse: warehouse ?? this.warehouse,
       images: images ?? this.images,
@@ -1708,6 +1744,9 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
     if (packSize.present) {
       map['pack_size'] = Variable<int>(packSize.value);
     }
+    if (meterPrice.present) {
+      map['meter_price'] = Variable<String>(meterPrice.value);
+    }
     if (qrcode.present) {
       map['qrcode'] = Variable<String>(qrcode.value);
     }
@@ -1732,6 +1771,7 @@ class ProductTableCompanion extends UpdateCompanion<ProductTableData> {
           ..write('categoryTitle: $categoryTitle, ')
           ..write('unit: $unit, ')
           ..write('packSize: $packSize, ')
+          ..write('meterPrice: $meterPrice, ')
           ..write('qrcode: $qrcode, ')
           ..write('warehouse: $warehouse, ')
           ..write('images: $images')
@@ -2994,6 +3034,7 @@ typedef $$ProductTableTableCreateCompanionBuilder = ProductTableCompanion
   required String categoryTitle,
   required String unit,
   Value<int?> packSize,
+  Value<String> meterPrice,
   required String qrcode,
   required int warehouse,
   required String images,
@@ -3009,6 +3050,7 @@ typedef $$ProductTableTableUpdateCompanionBuilder = ProductTableCompanion
   Value<String> categoryTitle,
   Value<String> unit,
   Value<int?> packSize,
+  Value<String> meterPrice,
   Value<String> qrcode,
   Value<int> warehouse,
   Value<String> images,
@@ -3050,6 +3092,9 @@ class $$ProductTableTableFilterComposer
 
   ColumnFilters<int> get packSize => $composableBuilder(
       column: $table.packSize, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get meterPrice => $composableBuilder(
+      column: $table.meterPrice, builder: (column) => ColumnFilters(column));
 
   ColumnFilters<String> get qrcode => $composableBuilder(
       column: $table.qrcode, builder: (column) => ColumnFilters(column));
@@ -3099,6 +3144,9 @@ class $$ProductTableTableOrderingComposer
   ColumnOrderings<int> get packSize => $composableBuilder(
       column: $table.packSize, builder: (column) => ColumnOrderings(column));
 
+  ColumnOrderings<String> get meterPrice => $composableBuilder(
+      column: $table.meterPrice, builder: (column) => ColumnOrderings(column));
+
   ColumnOrderings<String> get qrcode => $composableBuilder(
       column: $table.qrcode, builder: (column) => ColumnOrderings(column));
 
@@ -3144,6 +3192,9 @@ class $$ProductTableTableAnnotationComposer
 
   GeneratedColumn<int> get packSize =>
       $composableBuilder(column: $table.packSize, builder: (column) => column);
+
+  GeneratedColumn<String> get meterPrice => $composableBuilder(
+      column: $table.meterPrice, builder: (column) => column);
 
   GeneratedColumn<String> get qrcode =>
       $composableBuilder(column: $table.qrcode, builder: (column) => column);
@@ -3191,6 +3242,7 @@ class $$ProductTableTableTableManager extends RootTableManager<
             Value<String> categoryTitle = const Value.absent(),
             Value<String> unit = const Value.absent(),
             Value<int?> packSize = const Value.absent(),
+            Value<String> meterPrice = const Value.absent(),
             Value<String> qrcode = const Value.absent(),
             Value<int> warehouse = const Value.absent(),
             Value<String> images = const Value.absent(),
@@ -3205,6 +3257,7 @@ class $$ProductTableTableTableManager extends RootTableManager<
             categoryTitle: categoryTitle,
             unit: unit,
             packSize: packSize,
+            meterPrice: meterPrice,
             qrcode: qrcode,
             warehouse: warehouse,
             images: images,
@@ -3219,6 +3272,7 @@ class $$ProductTableTableTableManager extends RootTableManager<
             required String categoryTitle,
             required String unit,
             Value<int?> packSize = const Value.absent(),
+            Value<String> meterPrice = const Value.absent(),
             required String qrcode,
             required int warehouse,
             required String images,
@@ -3233,6 +3287,7 @@ class $$ProductTableTableTableManager extends RootTableManager<
             categoryTitle: categoryTitle,
             unit: unit,
             packSize: packSize,
+            meterPrice: meterPrice,
             qrcode: qrcode,
             warehouse: warehouse,
             images: images,

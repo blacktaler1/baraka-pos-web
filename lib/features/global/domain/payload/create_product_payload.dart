@@ -12,6 +12,7 @@ final class CreateProductPayload extends Payload {
   final String qrCode;
   final int firmaId;
   final int? wholesalePrice;
+  final int? meterPrice;
   final double? minStock;
 
   const CreateProductPayload({
@@ -26,6 +27,7 @@ final class CreateProductPayload extends Payload {
     required this.qrCode,
     required this.firmaId,
     this.wholesalePrice,
+    this.meterPrice,
     this.minStock,
   });
 
@@ -42,6 +44,7 @@ final class CreateProductPayload extends Payload {
         "qrCode: $qrCode",
         "firmaId: $firmaId",
         "wholesale_price: $wholesalePrice",
+        "meter_price: $meterPrice",
         "min_stock: $minStock",
       ];
 }

@@ -27,6 +27,7 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     on<UpdateDebtDetailsEvent>(_onUpdateDebtDetails);
     on<UpdateItemPriceEvent>(_onUpdatePrice);
     on<ToggleWholesaleEvent>(_onToggleWholesale);
+    on<ToggleItemByPieceEvent>(_onToggleByPiece);
     on<UpdateDiscountEvent>(_onUpdateDiscount);
   }
 
@@ -136,12 +137,18 @@ class CartBloc extends Bloc<CartEvent, CartState> {
             ? double.parse(event.product.stock)
             : 1,
         stock: event.product.stock,
+        packSize: event.product.packSize,
+        meterPrice: event.product.meterPrice,
+        // Rulon odatda metrlab sotiladi; savatda "Dona" ga o'tkazish mumkin
+        byPiece: event.product.unit == 'roll',
       );
       item.price = item.priceFor(wholesale: currentOrder.wholesale);
+      if (item.isRoll) {
+        item.quantity = item.maxQuantity >= 1 ? 1 : item.maxQuantity;
+      }
       newItems.add(item);
     } else {
-      if (newItems[itemIndex].quantity <
-          double.parse(newItems[itemIndex].stock)) {
+      if (newItems[itemIndex].quantity + 1 <= newItems[itemIndex].maxQuantity) {
         newItems[itemIndex].quantity++;
       }
     }
@@ -250,6 +257,22 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       (order) => order.copyWith(items: newItems, wholesale: event.wholesale),
       emit,
     );
+  }
+
+  void _onToggleByPiece(ToggleItemByPieceEvent event, Emitter<CartState> emit) {
+    final currentOrder = state.selectedOrder;
+    if (currentOrder == null) return;
+
+    final newItems = List<OrderItem>.from(currentOrder.items);
+    final index = newItems.indexWhere((e) => e.productId == event.productId);
+    if (index == -1) return;
+    final item = newItems[index];
+    if (!item.isRoll || item.byPiece == event.byPiece) return;
+
+    item.byPiece = event.byPiece;
+    item.price = item.priceFor(wholesale: currentOrder.wholesale);
+    item.quantity = item.maxQuantity >= 1 ? 1 : item.maxQuantity;
+    _updateOrderAndEmit(currentOrder.transactionId, newItems, emit);
   }
 
   void _onUpdateDiscount(UpdateDiscountEvent event, Emitter<CartState> emit) {

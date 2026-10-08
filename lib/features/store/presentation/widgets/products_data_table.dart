@@ -1,3 +1,4 @@
+import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:baraka_pos/features/global/domain/domain.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
 import 'package:baraka_pos/shared/design/design.dart';
@@ -52,7 +53,11 @@ class ProductsDataTable extends StatelessWidget {
     final cost = double.tryParse(p.cost) ?? 0;
     final margin = (double.tryParse(p.price) ?? 0) - cost;
     final marginPct = cost > 0 ? margin / cost * 100 : null;
-    final title = p.unit == "pack" ? "${p.title} (${p.packSize})" : p.title;
+    final title = p.unit == "pack"
+        ? "${p.title} (${p.packSize})"
+        : isRollUnit(p.unit)
+            ? "${p.title} (${p.packSize} m)"
+            : p.title;
     final category = p.category.title;
 
     return DataRow(
@@ -105,10 +110,15 @@ class ProductsDataTable extends StatelessWidget {
             ],
           ),
         ),
-        DataCell(StockStatusPill(stock: p.stock, minStock: p.minStock)),
+        DataCell(StockStatusPill(
+          stock: p.stock,
+          minStock: p.minStock,
+          label:
+              isRollUnit(p.unit) ? formatRollStock(p.stock, p.packSize) : null,
+        )),
         DataCell(
           Text(
-            p.unit == "pack" ? tr("pack") : p.unit,
+            unitLabel(p.unit),
             style: AppText.small,
           ),
         ),
@@ -161,10 +171,14 @@ class StockStatusPill extends StatelessWidget {
   final String stock;
   final String minStock;
 
+  /// Raqam o'rniga ko'rsatiladigan yozuv (rulon: "1 dona + 33 m")
+  final String? label;
+
   const StockStatusPill({
     super.key,
     required this.stock,
     this.minStock = "",
+    this.label,
   });
 
   @override
@@ -213,7 +227,7 @@ class StockStatusPill extends StatelessWidget {
             Icon(icon, size: 13, color: color),
             const SizedBox(width: 5),
             Text(
-              text,
+              label ?? text,
               style: AppText.caption.copyWith(
                 color: color,
                 fontWeight: FontWeight.w700,

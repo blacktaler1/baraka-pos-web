@@ -269,6 +269,7 @@ class _CashRegisterScreenState extends State<CashRegisterScreen> {
                               (item) => CreateItemModel(
                                 productId: item.productId,
                                 quantity: item.quantity.toString(),
+                                isPiece: item.isPieceSale,
                                 price: int.parse(
                                   double.parse(item.price).toStringAsFixed(0),
                                 ),

@@ -28,6 +28,8 @@ final class ProductDto extends JsonDto<ProductModel> {
 
   int get packSize => json.integer("pack_size");
 
+  String get meterPrice => json.text("meter_price");
+
   String get unit => json["unit"]?.toString() ?? "";
 
   ImageCollectionDto get images =>
@@ -56,6 +58,7 @@ final class ProductDto extends JsonDto<ProductModel> {
       minStock: minStock,
       category: categegory.model(),
       packSize: packSize,
+      meterPrice: meterPrice,
       unit: unit,
       qrCode: qrCode,
       imageCollection: images.collection(),

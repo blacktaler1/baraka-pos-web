@@ -19,6 +19,12 @@ class ProductRow extends StatefulWidget {
   final Function() onDelete;
   final bool cash;
 
+  /// "Mavjud" yonidagi yozuv (rulon: "1 dona + 33 m")
+  final String? stockLabel;
+
+  /// Nom ostidagi qo'shimcha (rulon: Metr / Dona tanlovi)
+  final Widget? modeToggle;
+
   final Function(int productId, double newQuantity) updateQuantity;
 
   const ProductRow({
@@ -32,6 +38,8 @@ class ProductRow extends StatefulWidget {
     required this.onDelete,
     required this.updateQuantity,
     this.cash = false,
+    this.stockLabel,
+    this.modeToggle,
   });
 
   @override
@@ -43,6 +51,16 @@ class _ProductRowState extends State<ProductRow> {
   final TextEditingController _priceController = TextEditingController();
   double subTotal = 0;
   bool get isPieceUnit => widget.unit.toLowerCase() == 'dona';
+
+  /// Metr kasr bo'lishi mumkin (0.5 m), boshqalar kamida 1
+  double get _minQty => widget.unit.toLowerCase() == 'metr' ? 0.1 : 1;
+
+  String _fmtQty(double q) {
+    if (isPieceUnit) return q.toInt().toString();
+    if (q == q.roundToDouble()) return q.toInt().toString();
+    return q.toStringAsFixed(2).replaceFirst(RegExp(r'0+$'), '');
+  }
+
   @override
   void initState() {
     super.initState();
@@ -50,16 +68,15 @@ class _ProductRowState extends State<ProductRow> {
     _priceController.text = formatCurrency(
         int.parse(double.parse(widget.price).toStringAsFixed(0)).toString(),
         withCurrency: false);
-    _controller.text = isPieceUnit
-        ? widget.quantity.toInt().toString()
-        : widget.quantity.toStringAsFixed(1);
+    _controller.text = _fmtQty(widget.quantity);
   }
 
   @override
   void didUpdateWidget(covariant ProductRow oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.quantity != widget.quantity) {
-      _controller.text = widget.quantity.toStringAsFixed(1);
+    if (oldWidget.quantity != widget.quantity ||
+        oldWidget.unit != widget.unit) {
+      _controller.text = _fmtQty(widget.quantity);
       subTotal = double.parse(widget.price) * widget.quantity;
     }
     if (oldWidget.price != widget.price) {
@@ -84,11 +101,10 @@ class _ProductRowState extends State<ProductRow> {
       qty = qty.floorToDouble();
     }
 
-    if (qty < 1) qty = 1;
+    if (qty < _minQty) qty = _minQty;
     if (qty > stock) qty = stock;
 
-    _controller.text =
-        isPieceUnit ? qty.toInt().toString() : qty.toStringAsFixed(1);
+    _controller.text = _fmtQty(qty);
 
     setState(() {
       subTotal = double.parse(widget.price) * qty;
@@ -102,10 +118,9 @@ class _ProductRowState extends State<ProductRow> {
       double qty = double.tryParse(_controller.text) ?? 1;
       final double stock = double.parse(widget.stock);
       final next = qty + delta;
-      if (next < 1 || next > stock) return;
+      if (next < _minQty || next > stock + 1e-9) return;
       qty = isPieceUnit ? next.floorToDouble() : next;
-      _controller.text =
-          isPieceUnit ? qty.toInt().toString() : qty.toStringAsFixed(1);
+      _controller.text = _fmtQty(qty);
       subTotal = double.parse(widget.price) * qty;
       widget.updateQuantity(widget.id, qty);
     });
@@ -138,11 +153,12 @@ class _ProductRowState extends State<ProductRow> {
               style: AppText.bodyStrong,
             ),
             Text(
-              "${tr("in_stock")}: ${stock == stock.roundToDouble() ? stock.toInt() : stock}",
+              "${tr("in_stock")}: ${widget.stockLabel ?? (stock == stock.roundToDouble() ? stock.toInt() : stock)}",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppText.caption,
             ),
+            if (widget.modeToggle != null) widget.modeToggle!,
           ],
         ),
       ),

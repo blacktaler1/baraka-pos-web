@@ -1,3 +1,4 @@
+import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:cross_file/cross_file.dart';
 
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
@@ -63,6 +64,7 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
   final _packStock = TextEditingController();
   final _wholesale = TextEditingController();
   final _minStock = TextEditingController();
+  final _meterPrice = TextEditingController();
 
   List<int> _imageIds = [];
   String? _suggestedImageUrl;
@@ -115,6 +117,7 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
       _packStock,
       _wholesale,
       _minStock,
+      _meterPrice,
     ]) {
       c.dispose();
     }
@@ -147,6 +150,9 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
             minStock: _minStock.text.trim().isEmpty
                 ? null
                 : parseAmount(_minStock.text),
+            meterPrice: _unit == "roll" && _meterPrice.text.trim().isNotEmpty
+                ? parseAmountInt(_meterPrice.text)
+                : null,
           ),
         );
   }
@@ -323,16 +329,20 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
                             for (final u in productUnits)
                               DropdownMenuItem(
                                 value: u,
-                                child: Text(u == "pack" ? tr("pack") : u),
+                                child: Text(unitLabel(u)),
                               ),
                           ],
                           onChanged: (v) => setState(() => _unit = v),
                           validator: (v) => v == null ? tr("required") : null,
                         ),
                       ]),
-                      if (_unit == "pack")
+                      if (_unit == "pack" || _unit == "roll")
                         AppTextField(
-                          label: "${tr("pack")} ${tr("stock")}",
+                          label: _unit == "roll"
+                              ? tr("meters_in_piece")
+                              : "${tr("pack")} ${tr("stock")}",
+                          helper:
+                              _unit == "roll" ? tr("roll_stock_hint") : null,
                           required: true,
                           controller: _packStock,
                           keyboardType: TextInputType.number,
@@ -340,6 +350,14 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
                             FilteringTextInputFormatter.digitsOnly,
                           ],
                           validator: (v) => _requiredText(v, "stock_required"),
+                        ),
+                      if (_unit == "roll")
+                        AppTextField(
+                          label: tr("meter_price"),
+                          helper: tr("meter_price_hint"),
+                          controller: _meterPrice,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: _moneyFormatters,
                         ),
                       AppTextField(
                         label: tr("min_stock"),

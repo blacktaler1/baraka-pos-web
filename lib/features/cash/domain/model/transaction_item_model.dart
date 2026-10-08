@@ -11,6 +11,9 @@ final class TransactionItemModel extends Model {
   final String status;
   final int packSize;
 
+  /// Pachkadan dona yoki rulondan metr sotilganmi
+  final bool isPieceSale;
+
   const TransactionItemModel({
     required this.id,
     required this.productId,
@@ -21,6 +24,7 @@ final class TransactionItemModel extends Model {
     required this.subtotal,
     required this.status,
     required this.packSize,
+    this.isPieceSale = false,
   });
 
   @override
@@ -34,5 +38,6 @@ final class TransactionItemModel extends Model {
         "subtotal: $subtotal",
         "status: $status",
         "pack_size: $packSize",
+        "is_piece_sale: $isPieceSale",
       ];
 }

@@ -41,6 +41,13 @@ class UpdateItemPriceEvent extends CartEvent {
 
 class ResetOrderEvent extends CartEvent {}
 
+/// Rulon qatorini metr / dona rejimiga o'tkazish
+class ToggleItemByPieceEvent extends CartEvent {
+  final int productId;
+  final bool byPiece;
+  ToggleItemByPieceEvent(this.productId, this.byPiece);
+}
+
 class ToggleWholesaleEvent extends CartEvent {
   final bool wholesale;
   ToggleWholesaleEvent(this.wholesale);

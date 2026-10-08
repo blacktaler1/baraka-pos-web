@@ -8,6 +8,13 @@ class OrderItem {
   final String stock;
   final String unit;
 
+  /// Rulon: 1 donadagi metr va 1 metr narxi
+  final int packSize;
+  final String meterPrice;
+
+  /// Rulon qatorida: true — metrlab, false — butun dona sotiladi
+  bool byPiece;
+
   OrderItem({
     required this.productId,
     required this.title,
@@ -17,12 +24,43 @@ class OrderItem {
     required this.unit,
     String? retailPrice,
     this.wholesalePrice = "",
+    this.packSize = 0,
+    this.meterPrice = "",
+    this.byPiece = false,
   }) : retailPrice = retailPrice ?? price;
 
   bool get hasWholesalePrice => wholesalePrice.isNotEmpty;
 
-  String priceFor({required bool wholesale}) =>
-      wholesale && hasWholesalePrice ? wholesalePrice : retailPrice;
+  bool get isRoll => unit == 'roll' && packSize > 0;
+
+  /// Backendga is_piece=true bilan yuboriladi (metrlab sotuv)
+  bool get isPieceSale => isRoll && byPiece;
+
+  double get _stockValue => double.tryParse(stock) ?? 0;
+
+  /// Butun donalar soni (ochilgan rulon hisobga olinmaydi)
+  int get fullPieces => (_stockValue + 1e-6).floor();
+
+  /// Joriy rejimda sotish mumkin bo'lgan eng ko'p miqdor
+  double get maxQuantity {
+    if (!isRoll) return _stockValue;
+    if (byPiece) return (_stockValue * packSize * 100).floorToDouble() / 100;
+    return fullPieces.toDouble();
+  }
+
+  /// Savat qatorida ko'rinadigan birlik: metr yoki dona
+  String get saleUnit => isRoll ? (byPiece ? 'metr' : 'dona') : unit;
+
+  String priceFor({required bool wholesale}) {
+    if (isPieceSale) {
+      if (wholesale && hasWholesalePrice) {
+        return (double.parse(wholesalePrice) / packSize).toStringAsFixed(2);
+      }
+      if (meterPrice.isNotEmpty) return meterPrice;
+      return (double.parse(retailPrice) / packSize).toStringAsFixed(2);
+    }
+    return wholesale && hasWholesalePrice ? wholesalePrice : retailPrice;
+  }
 
   Map<String, dynamic> toJson() => {
         "product_id": productId,
@@ -38,6 +76,9 @@ class OrderItem {
         "quantity": quantity,
         "stock": stock,
         "unit": unit,
+        "pack_size": packSize,
+        "meter_price": meterPrice,
+        "by_piece": byPiece,
       };
 
   factory OrderItem.fromStorageJson(Map<String, dynamic> json) => OrderItem(
@@ -49,6 +90,9 @@ class OrderItem {
         quantity: (json["quantity"] as num).toDouble(),
         stock: json["stock"] as String,
         unit: json["unit"] as String,
+        packSize: json["pack_size"] as int? ?? 0,
+        meterPrice: json["meter_price"] as String? ?? "",
+        byPiece: json["by_piece"] as bool? ?? false,
       );
 }
 

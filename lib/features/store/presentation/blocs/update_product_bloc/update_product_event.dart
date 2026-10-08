@@ -20,6 +20,7 @@ final class UpdateProductEventStarted extends UpdateProductEvent {
   final String qrCode;
   final int firmaId;
   final int? wholesalePrice;
+  final int? meterPrice;
   final double? minStock;
 
   const UpdateProductEventStarted({
@@ -35,6 +36,7 @@ final class UpdateProductEventStarted extends UpdateProductEvent {
     required this.qrCode,
     required this.firmaId,
     required this.wholesalePrice,
+    this.meterPrice,
     required this.minStock,
   });
 
@@ -52,6 +54,7 @@ final class UpdateProductEventStarted extends UpdateProductEvent {
         "qrCode: $qrCode",
         "firmaId: $firmaId",
         "wholesale_price: $wholesalePrice",
+        "meter_price: $meterPrice",
         "min_stock: $minStock",
       ];
 }

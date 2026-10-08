@@ -13,6 +13,7 @@ final class UpdateProductPayload extends Payload {
   final String qrCode;
   final int firmaId;
   final int? wholesalePrice;
+  final int? meterPrice;
   final double? minStock;
 
   const UpdateProductPayload({
@@ -28,6 +29,7 @@ final class UpdateProductPayload extends Payload {
     required this.qrCode,
     required this.firmaId,
     required this.wholesalePrice,
+    this.meterPrice,
     required this.minStock,
   });
 
@@ -44,6 +46,7 @@ final class UpdateProductPayload extends Payload {
         "qrCode: $qrCode",
         "firma_id: $firmaId",
         "wholesale_price: $wholesalePrice",
+        "meter_price: $meterPrice",
         "min_stock: $minStock",
       ];
 }

@@ -1,3 +1,4 @@
+import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
 import 'package:baraka_pos/shared/design/design.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -59,7 +60,12 @@ class TransactionDetailModal extends StatelessWidget {
             if (i > 0) const Divider(),
             AppLineItem(
               title: items[i].productTitle,
-              subtitle: "${items[i].quantity} ${tr("dona")}",
+              subtitle: saleQuantityLabel(
+                quantity: items[i].quantity,
+                unit: items[i].productUnit,
+                isPieceSale: items[i].isPieceSale,
+                packSize: items[i].packSize,
+              ),
               trailing: formatCurrency(items[i].subtotal.toString()),
             ),
           ],
