@@ -3,7 +3,7 @@
 # Faqat /var/www/baraka-pos-web va mobile.barakaposystem.uz nginx saytiga tegadi.
 set -euo pipefail
 
-ARCHIVE="${1:?build arxiv yo'li kerak}"
+ARCHIVE="${1:?build arxivi kerak}"
 APP_DIR=/var/www/baraka-pos-web
 RELEASE="$APP_DIR/releases/$(date +%Y%m%d%H%M%S)"
 SITE=/etc/nginx/sites-available/mobile.barakaposystem.uz.conf
