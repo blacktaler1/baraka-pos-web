@@ -9,7 +9,10 @@ import 'package:go_router/go_router.dart';
 UserTableData? globalUser;
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  /// Foydalanuvchi yuklangach qaytariladigan sahifa (webda F5 dan keyin)
+  final String? from;
+
+  const SplashScreen({super.key, this.from});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -43,6 +46,12 @@ class _SplashScreenState extends State<SplashScreen> {
     context.read<RefreshBloc>().add(
           RefreshStarted(refresh: auth!.refreshToken),
         );
+
+    final from = widget.from;
+    if (from != null && from.isNotEmpty && !from.startsWith('/splash')) {
+      context.go(from);
+      return;
+    }
 
     /// 🔀 Role bo‘yicha routing
     switch (user.role) {

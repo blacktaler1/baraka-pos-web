@@ -59,10 +59,23 @@ class RoleGuard extends GoRoute {
         );
 }
 
+// Webda sahifa yangilansa (F5) yoki havola orqali ochilsa ham foydalanuvchi
+// avval splash'da bazadan yuklanadi, so'ng so'ralgan sahifaga qaytariladi
+const _publicPaths = {"/splash", "/auth", "/no_internet", "/forbidden"};
+
 final GoRouter appRouter = GoRouter(
   initialLocation: "/splash",
   refreshListenable: networkNotifier,
   navigatorKey: rootNavigatorKey,
+  redirect: (context, state) {
+    if (globalUser != null || _publicPaths.contains(state.matchedLocation)) {
+      return null;
+    }
+    return Uri(
+      path: "/splash",
+      queryParameters: {"from": state.uri.toString()},
+    ).toString();
+  },
   routes: [
     StatefulShellRoute.indexedStack(
       builder: (context, state, navigationShell) {
@@ -231,7 +244,8 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: "/splash",
       name: "splash",
-      builder: (context, state) => SplashScreen(),
+      builder: (context, state) =>
+          SplashScreen(from: state.uri.queryParameters["from"]),
     ),
     GoRoute(
       path: "/auth",
