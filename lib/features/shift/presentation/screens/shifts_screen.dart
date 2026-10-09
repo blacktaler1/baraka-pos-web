@@ -56,6 +56,7 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
                 Text(title, style: AppText.h2),
                 const SizedBox(height: AppSpacing.lg),
                 AppTextField(
+                  usd: false,
                   label: label,
                   controller: amountCtrl,
                   keyboardType: TextInputType.number,

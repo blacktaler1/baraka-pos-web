@@ -328,6 +328,7 @@ class _EditProductModalState extends State<EditProductModal> {
                         label: tr("meter_price"),
                         helper: tr("meter_price_hint"),
                         controller: meterPriceCtrl,
+                        usd: true,
                         keyboardType: TextInputType.number,
                       ),
                     AppTextField(

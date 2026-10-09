@@ -493,5 +493,13 @@
   "edit_debt_hint": "0 bo'lsa — to'langan",
   "no_deadline": "Muddatsiz",
   "debt_updated": "Qarz yangilandi",
-  "add_firma": "Yangi firma"
+  "add_firma": "Yangi firma",
+  "usd_rate": "Dollar kursi",
+  "usd_rate_hint": "1 $ necha so'm",
+  "usd_rate_missing": "Avval Sozlamalarda dollar kursini kiriting",
+  "usd_convert": "Dollardan so'mga",
+  "amount_in_usd": "Dollarda summa",
+  "in_som": "So'mda (yaxlitlangan)",
+  "apply": "Qo'llash",
+  "not_set": "Kiritilmagan"
 }

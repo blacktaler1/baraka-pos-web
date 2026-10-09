@@ -2,6 +2,7 @@ export '../aplication/configs/app_colors.dart';
 export 'tokens.dart';
 export 'components/app_button.dart';
 export 'components/app_fields.dart';
+export 'components/usd_convert.dart';
 export 'components/app_layout.dart';
 export 'components/app_side_panel.dart';
 export '../presentation/widgets/app_search_field.dart';

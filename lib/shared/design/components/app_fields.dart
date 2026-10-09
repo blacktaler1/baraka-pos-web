@@ -1,3 +1,5 @@
+import '../../../features/cash/presentation/widgets/thousands_separator_formatter.dart';
+import 'usd_convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -57,6 +59,10 @@ class AppTextField extends StatefulWidget {
   final AutovalidateMode? autovalidateMode;
   final TextAlign textAlign;
 
+  /// "$" (dollar -> so'm) tugmasi. null — pul maydonlarida (minglik
+  /// ajratgich bilan) avtomatik chiqadi; kassada false qilib o'chiriladi.
+  final bool? usd;
+
   const AppTextField({
     super.key,
     this.label,
@@ -81,6 +87,7 @@ class AppTextField extends StatefulWidget {
     this.onTap,
     this.autovalidateMode,
     this.textAlign = TextAlign.start,
+    this.usd,
   });
 
   @override
@@ -89,6 +96,25 @@ class AppTextField extends StatefulWidget {
 
 class _AppTextFieldState extends State<AppTextField> {
   late bool _hidden = widget.obscure;
+
+  bool get _showUsd =>
+      widget.controller != null &&
+      !widget.readOnly &&
+      (widget.usd ??
+          (widget.inputFormatters
+                  ?.any((f) => f is ThousandsSeparatorFormatter) ??
+              false));
+
+  Widget? get _suffix {
+    if (!_showUsd) return widget.suffix;
+    final button = UsdConvertButton(
+      controller: widget.controller!,
+      onConverted: widget.onChanged,
+    );
+    if (widget.suffix == null) return button;
+    return Row(
+        mainAxisSize: MainAxisSize.min, children: [widget.suffix!, button]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -132,7 +158,7 @@ class _AppTextFieldState extends State<AppTextField> {
                       size: AppSizes.icon,
                     ),
                   )
-                : widget.suffix,
+                : _suffix,
           ),
         ),
       ],

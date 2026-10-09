@@ -90,6 +90,7 @@ class _DiscountSectionState extends State<DiscountSection> {
         ),
         const SizedBox(height: AppSpacing.sm),
         AppTextField(
+                  usd: false,
           controller: _controller,
           hint: tr("enter_discount"),
           keyboardType: const TextInputType.numberWithOptions(decimal: true),

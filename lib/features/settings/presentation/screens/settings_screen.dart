@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:baraka_pos/features/auth/auth.dart';
 import 'package:baraka_pos/features/settings/presentation/presentation.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -28,12 +29,70 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadUser() async {
     final user = await sl<AuthLocalSource>().getCurrentUser();
     final version = await getProjectVersion();
+    await UsdRate.load();
     if (!mounted) return;
     setState(() {
       currentUser = user;
       appVersion = version;
       loading = false;
     });
+  }
+
+  Future<void> _editUsdRate(double? current) async {
+    final ctrl = TextEditingController(
+      text: current == null
+          ? ""
+          : current.toStringAsFixed(current % 1 == 0 ? 0 : 2),
+    );
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => Dialog(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 380),
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(tr("usd_rate"), style: AppText.h2),
+                const SizedBox(height: AppSpacing.lg),
+                AppTextField(
+                  label: tr("usd_rate_hint"),
+                  controller: ctrl,
+                  usd: false,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+                  ],
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: AppSpacing.sm,
+                  children: [
+                    AppButton.secondary(
+                      label: tr("cancel"),
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                    ),
+                    AppButton(
+                      label: tr("save"),
+                      icon: Icons.check_circle_rounded,
+                      onPressed: () => Navigator.pop(dialogContext, true),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (saved != true) return;
+    final rate =
+        double.tryParse(ctrl.text.replaceAll(' ', '').replaceAll(',', '.'));
+    await UsdRate.save(rate);
   }
 
   Future<void> _logout() async {
@@ -94,6 +153,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     color: AppColors.info,
                     title: tr("change_password"),
                     onTap: () => showChangePasswordPanel(context),
+                  ),
+                  ValueListenableBuilder<double?>(
+                    valueListenable: UsdRate.current,
+                    builder: (context, rate, _) => _SettingsTile(
+                      icon: Icons.attach_money_rounded,
+                      color: AppColors.success,
+                      title: tr("usd_rate"),
+                      trailingText: rate == null
+                          ? tr("not_set")
+                          : formatCurrency(
+                              rate.toStringAsFixed(rate % 1 == 0 ? 0 : 2)),
+                      onTap: () => _editUsdRate(rate),
+                    ),
                   ),
                   if (isAdmin)
                     _SettingsTile(
