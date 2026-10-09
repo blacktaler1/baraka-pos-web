@@ -1,3 +1,5 @@
+import '../../domain/payload/update_debt_record_payload.dart';
+import '../request/update_debt_record_request.dart';
 import 'package:baraka_pos/features/global/domain/model/file_bytes_model.dart';
 import '../../../../shared/shared.dart';
 import '../../debtors.dart';
@@ -116,5 +118,15 @@ final class DebtorsRepositoryImpl extends DebtorsRepository {
           success: (dto) => dto.model(),
           failure: (BaseException e) => e,
         );
+  }
+
+  @override
+  Future<Safed<BaseException, Json>> updateDebtRecord({
+    required UpdateDebtRecordPayload payload,
+  }) {
+    return remote.updateDebtRecord(
+      recordId: payload.recordId,
+      request: UpdateDebtRecordRequest.fromPayload(payload),
+    );
   }
 }

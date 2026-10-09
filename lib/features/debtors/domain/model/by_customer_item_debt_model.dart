@@ -9,6 +9,7 @@ final class ByCustomerItemModel extends Model {
   final String debt;
   final bool isPaid;
   final String deadline;
+  final String description;
   final String created;
   final TransactionDetailsModel details;
   final ItemCollection items;
@@ -19,6 +20,7 @@ final class ByCustomerItemModel extends Model {
     required this.debt,
     required this.isPaid,
     required this.deadline,
+    this.description = "",
     required this.created,
     required this.details,
     required this.items,

@@ -1,3 +1,4 @@
+import '../request/update_debt_record_request.dart';
 import 'dart:typed_data';
 
 import 'package:baraka_pos/features/auth/presentation/presentation.dart';
@@ -101,6 +102,16 @@ final class DebtorRemouteSource extends RemoteSource {
   }) {
     return apiDownload(
       path: "/${globalUser?.warehouseUuid}/debts/summary/export/",
+      request: request,
+    );
+  }
+
+  Future<Safed<BaseException, Json>> updateDebtRecord({
+    required int recordId,
+    required UpdateDebtRecordRequest request,
+  }) {
+    return apiPatch(
+      path: "/${globalUser?.warehouseUuid}/debts/records/$recordId/",
       request: request,
     );
   }

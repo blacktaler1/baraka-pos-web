@@ -16,6 +16,8 @@ final class ByCustomerItemDto extends JsonDto<ByCustomerItemModel> {
 
   String get deadline => json.text("deadline");
 
+  String get description => json.text("description");
+
   String get created => json.text("created");
 
   TransactionDetailsDto get transactionDetails =>
@@ -32,6 +34,7 @@ final class ByCustomerItemDto extends JsonDto<ByCustomerItemModel> {
       debt: debt,
       isPaid: isPaid,
       deadline: deadline,
+      description: description,
       created: created,
       details: transactionDetails.model(),
       items: items.collection(),

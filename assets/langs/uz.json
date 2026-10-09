@@ -488,5 +488,9 @@
   "meters_in_piece": "1 donada necha metr",
   "roll_stock_hint": "Zaxira donada kiritiladi, masalan 2 ta 40 metrlik",
   "meter_price": "1 metr narxi",
-  "meter_price_hint": "Bo'sh qoldirilsa: dona narxi / metr soni"
+  "meter_price_hint": "Bo'sh qoldirilsa: dona narxi / metr soni",
+  "edit_debt": "Qarzni tahrirlash",
+  "edit_debt_hint": "0 bo'lsa — to'langan",
+  "no_deadline": "Muddatsiz",
+  "debt_updated": "Qarz yangilandi"
 }

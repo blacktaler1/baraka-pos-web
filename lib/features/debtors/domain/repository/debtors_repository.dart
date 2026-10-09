@@ -1,3 +1,4 @@
+import '../payload/update_debt_record_payload.dart';
 import 'package:baraka_pos/features/global/domain/model/file_bytes_model.dart';
 import 'package:baraka_pos/shared/aplication/aplication.dart';
 
@@ -34,5 +35,10 @@ abstract class DebtorsRepository {
   });
   Future<Safed<BaseException, AllCustomerHistoryModel>> byCustomerHistory({
     required ByCustomerHistoryPayload payload,
+  });
+
+  /// Qolgan qarz, muddat yoki izohni o'zgartirish (admin/menejer)
+  Future<Safed<BaseException, Json>> updateDebtRecord({
+    required UpdateDebtRecordPayload payload,
   });
 }

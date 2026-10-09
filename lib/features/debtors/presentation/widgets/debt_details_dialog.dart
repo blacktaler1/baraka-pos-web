@@ -1,3 +1,5 @@
+import 'package:baraka_pos/features/auth/presentation/screens/splash_screen.dart';
+import '../../domain/payload/update_debt_record_payload.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -143,7 +145,13 @@ class DebtDetailsDialog extends StatelessWidget {
                     const SizedBox(height: AppSpacing.lg),
                     for (var i = 0; i < debts.length; i++) ...[
                       if (i > 0) const SizedBox(height: AppSpacing.sm),
-                      _DebtInvoiceCard(debt: debts[i]),
+                      _DebtInvoiceCard(
+                        debt: debts[i],
+                        onEdited: () {
+                          _snack(context, tr("debt_updated"));
+                          _refresh(context);
+                        },
+                      ),
                     ],
                   ],
                 );
@@ -255,7 +263,10 @@ class DebtDetailsDialog extends StatelessWidget {
 class _DebtInvoiceCard extends StatelessWidget {
   final ByCustomerItemModel debt;
 
-  const _DebtInvoiceCard({required this.debt});
+  /// Tahrirlangandan keyin ro'yxatni yangilash
+  final VoidCallback? onEdited;
+
+  const _DebtInvoiceCard({required this.debt, this.onEdited});
 
   @override
   Widget build(BuildContext context) {
@@ -300,11 +311,15 @@ class _DebtInvoiceCard extends StatelessWidget {
           ),
           title:
               Text("${tr("invoice")} #${debt.id}", style: AppText.bodyStrong),
-          subtitle: Row(
+          subtitle: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Flexible(
+              Padding(
+                padding: const EdgeInsets.only(right: AppSpacing.xs),
                 child: Text(
-                  "${tr("remaining_debt")}: ${formatCurrency(debt.debt)}",
+                  context.isMobile
+                      ? formatCurrency(debt.debt)
+                      : "${tr("remaining_debt")}: ${formatCurrency(debt.debt)}",
                   overflow: TextOverflow.ellipsis,
                   style: AppText.small.copyWith(color: color),
                 ),
@@ -329,11 +344,18 @@ class _DebtInvoiceCard extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (_canEditDebt)
+                AppIconButton(
+                  icon: Icons.edit_rounded,
+                  tooltip: tr("edit_debt"),
+                  color: AppColors.info,
+                  onPressed: () => _showEditDialog(context, debt),
+                ),
               debt.isPaid
                   ? AppBadge(tr("paid"),
                       tone: AppTone.success, icon: Icons.verified_rounded)
                   : AppButton(
-                      label: tr("pay"),
+                      label: context.isMobile ? "" : tr("pay"),
                       icon: Icons.payments_rounded,
                       size: AppButtonSize.sm,
                       onPressed: () => _showPayDialog(context, debt),
@@ -344,6 +366,21 @@ class _DebtInvoiceCard extends StatelessWidget {
             ],
           ),
           children: [
+            if (debt.description.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.notes_rounded,
+                        size: 16, color: AppColors.textTertiary),
+                    const SizedBox(width: AppSpacing.xs),
+                    Expanded(
+                      child: Text(debt.description, style: AppText.small),
+                    ),
+                  ],
+                ),
+              ),
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
@@ -382,6 +419,20 @@ class _DebtInvoiceCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Qarzni faqat admin va menejer tahrirlay oladi (backend ham shuni tekshiradi)
+  bool get _canEditDebt =>
+      globalUser?.role == 'admin' || globalUser?.role == 'manager';
+
+  void _showEditDialog(BuildContext context, ByCustomerItemModel debt) {
+    showDialog(
+      context: context,
+      builder: (_) => _EditDebtDialog(
+        debt: debt,
+        onSaved: () => onEdited?.call(),
       ),
     );
   }
@@ -683,6 +734,182 @@ class _DebtSummary extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Qarz yozuvini tahrirlash oynasi: qolgan qarz, muddat, izoh
+class _EditDebtDialog extends StatefulWidget {
+  final ByCustomerItemModel debt;
+  final VoidCallback onSaved;
+
+  const _EditDebtDialog({required this.debt, required this.onSaved});
+
+  @override
+  State<_EditDebtDialog> createState() => _EditDebtDialogState();
+}
+
+class _EditDebtDialogState extends State<_EditDebtDialog> {
+  late final num _originalDebt = num.tryParse(widget.debt.debt) ?? 0;
+  late final DateTime? _originalDeadline =
+      DateTime.tryParse(widget.debt.deadline)?.toLocal();
+
+  late final _debtCtrl = TextEditingController(
+    text: formatCurrency(_originalDebt.toStringAsFixed(0), withCurrency: false),
+  );
+  late final _noteCtrl = TextEditingController(text: widget.debt.description);
+  late DateTime? _deadline = _originalDeadline;
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _debtCtrl.dispose();
+    _noteCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickDate() async {
+    final now = DateTime.now();
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _deadline ?? now,
+      firstDate: DateTime(now.year - 5),
+      lastDate: DateTime(now.year + 10),
+    );
+    if (picked != null) {
+      // Kun oxirigacha amal qiladi
+      setState(() =>
+          _deadline = DateTime(picked.year, picked.month, picked.day, 23, 59));
+    }
+  }
+
+  Future<void> _save() async {
+    final newDebt = parseAmount(_debtCtrl.text);
+    final note = _noteCtrl.text.trim();
+    final deadlineChanged = _deadline != _originalDeadline;
+    final payload = UpdateDebtRecordPayload(
+      recordId: widget.debt.id,
+      debt: newDebt != _originalDebt ? newDebt : null,
+      deadline: deadlineChanged ? _deadline : null,
+      clearDeadline: deadlineChanged && _deadline == null,
+      description: note != widget.debt.description ? note : null,
+    );
+    if (payload.isEmpty) {
+      Navigator.pop(context);
+      return;
+    }
+
+    setState(() => _saving = true);
+    final result =
+        await sl<DebtorsRepository>().updateDebtRecord(payload: payload);
+    if (!mounted) return;
+    result.when(
+      success: (_) {
+        Navigator.pop(context);
+        widget.onSaved();
+      },
+      failure: (error) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final deadline = _deadline;
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const AppSoftIcon(
+                      icon: Icons.edit_note_rounded, color: AppColors.info),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(tr("edit_debt"), style: AppText.h2),
+                        Text("${tr("invoice")} #${widget.debt.id}",
+                            style: AppText.small),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                label: tr("remaining_debt"),
+                helper: tr("edit_debt_hint"),
+                controller: _debtCtrl,
+                prefix:
+                    const Icon(Icons.account_balance_wallet_rounded, size: 18),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  ThousandsSeparatorFormatter(),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Text(tr("deadline"), style: AppText.label),
+              const SizedBox(height: AppSpacing.xxs),
+              Row(
+                children: [
+                  Expanded(
+                    child: AppButton.secondary(
+                      label: deadline == null
+                          ? tr("no_deadline")
+                          : DateFormat('dd.MM.yyyy').format(deadline),
+                      icon: Icons.event_rounded,
+                      onPressed: _pickDate,
+                    ),
+                  ),
+                  if (deadline != null) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    AppIconButton(
+                      icon: Icons.close_rounded,
+                      tooltip: tr("no_deadline"),
+                      onPressed: () => setState(() => _deadline = null),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                label: tr("note"),
+                controller: _noteCtrl,
+                maxLines: 3,
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  AppButton.secondary(
+                    label: tr("cancel"),
+                    onPressed: _saving ? null : () => Navigator.pop(context),
+                  ),
+                  AppButton(
+                    label: tr("save"),
+                    icon: Icons.check_circle_rounded,
+                    loading: _saving,
+                    onPressed: _save,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
