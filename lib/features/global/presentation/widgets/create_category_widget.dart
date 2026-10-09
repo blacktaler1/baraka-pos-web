@@ -8,9 +8,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../media/media.dart';
 import '../../global.dart';
 
-Future<void> showCategoryPanel(BuildContext context,
+/// Yangi kategoriya yaratilsa, o'sha kategoriya qaytariladi
+Future<CategoryModel?> showCategoryPanel(BuildContext context,
     {CategoryModel? category}) {
-  return showAppSidePanel(
+  return showAppSidePanel<CategoryModel>(
     context,
     builder: (_) => CategoryFormPanel(category: category),
   );
@@ -69,11 +70,11 @@ class _CategoryFormPanelState extends State<CategoryFormPanel> {
     }
   }
 
-  void _done() {
+  void _done([CategoryModel? created]) {
     context
         .read<GetCategoryPagBloc>()
         .add(GetCategoryStarted(cursor: "", pageSize: "10"));
-    Navigator.pop(context);
+    Navigator.pop(context, created);
   }
 
   @override
@@ -91,7 +92,7 @@ class _CategoryFormPanelState extends State<CategoryFormPanel> {
         ),
         BlocListener<CreateCategoryBloc, CreateCategoryState>(
           listener: (context, state) {
-            if (state is CreateCategorySuccess) _done();
+            if (state is CreateCategorySuccess) _done(state.model);
           },
         ),
         BlocListener<UpdateCategoryBloc, UpdateCategoryState>(

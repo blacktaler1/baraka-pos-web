@@ -492,5 +492,6 @@
   "edit_debt": "Qarzni tahrirlash",
   "edit_debt_hint": "0 bo'lsa — to'langan",
   "no_deadline": "Muddatsiz",
-  "debt_updated": "Qarz yangilandi"
+  "debt_updated": "Qarz yangilandi",
+  "add_firma": "Yangi firma"
 }

@@ -12,8 +12,9 @@ import '../blocs/get_by_id_firma_bloc/get_by_id_firma_bloc.dart';
 import '../blocs/get_firma_bloc/get_firma_bloc.dart';
 import '../blocs/update_frima_bloc/update_firma_bloc.dart';
 
-Future<void> showFirmaPanel(BuildContext context, {FirmaModel? firma}) {
-  return showAppSidePanel(
+/// Yangi firma yaratilsa, o'sha firma qaytariladi
+Future<FirmaModel?> showFirmaPanel(BuildContext context, {FirmaModel? firma}) {
+  return showAppSidePanel<FirmaModel>(
     context,
     builder: (_) => FirmaFormPanel(firma: firma),
   );
@@ -128,7 +129,7 @@ class _FirmaFormPanelState extends State<FirmaFormPanel> {
         BlocListener<CreateFirmaBloc, CreateFirmaState>(
           listener: (context, state) {
             state.whenOrNull(
-              success: (_) {
+              success: (created) {
                 context.read<GetFirmaBloc>().add(
                       const GetFirmaStarted(
                         search: '',
@@ -137,7 +138,7 @@ class _FirmaFormPanelState extends State<FirmaFormPanel> {
                         debt: false,
                       ),
                     );
-                Navigator.pop(context);
+                Navigator.pop(context, created);
                 _snack(tr("firma_created_successfully"));
               },
               failure: (err) {

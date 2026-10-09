@@ -489,5 +489,6 @@
   "edit_debt": "Редактировать долг",
   "edit_debt_hint": "0 — долг оплачен",
   "no_deadline": "Без срока",
-  "debt_updated": "Долг обновлён"
+  "debt_updated": "Долг обновлён",
+  "add_firma": "Новая фирма"
 }

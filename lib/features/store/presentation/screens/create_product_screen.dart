@@ -1,3 +1,5 @@
+import 'package:baraka_pos/features/firma/presentation/screens/create_firma_screen.dart';
+import 'package:baraka_pos/features/global/presentation/widgets/create_category_widget.dart';
 import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:cross_file/cross_file.dart';
 
@@ -530,6 +532,54 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
     );
   }
 
+  /// Tanlash maydoni + yonida yangi yaratish tugmasi
+  Widget _withCreateButton(Widget field, String tooltip, VoidCallback onTap) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: field),
+        const SizedBox(width: AppSpacing.xs),
+        Padding(
+          // Maydon sarlavhasi balandligiga tenglashtiramiz
+          padding: const EdgeInsets.only(top: 24),
+          child: Tooltip(
+            message: tooltip,
+            child: Material(
+              color: AppColors.primarySoft,
+              borderRadius: AppRadius.control,
+              child: InkWell(
+                borderRadius: AppRadius.control,
+                onTap: onTap,
+                child: const SizedBox.square(
+                  dimension: AppSizes.controlHeight,
+                  child: Icon(Icons.add_rounded, color: AppColors.primary),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _createCategory() async {
+    final created = await showCategoryPanel(context);
+    if (created == null || !mounted) return;
+    context
+        .read<GetCategoryBloc>()
+        .add(GetCategoryStarted(cursor: "", pageSize: "all"));
+    setState(() => _categoryId = created.id);
+  }
+
+  Future<void> _createFirma() async {
+    final created = await showFirmaPanel(context);
+    if (created == null || !mounted) return;
+    context
+        .read<GetFirmaBloc>()
+        .add(GetFirmaStarted(search: '', cursor: '', pageSize: 0, debt: false));
+    setState(() => _firmaId = created.id);
+  }
+
   Widget _categoryDropdown() {
     return BlocBuilder<GetCategoryBloc, GetCategoryState>(
       builder: (context, state) {
@@ -537,17 +587,24 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
           success: (model) => model.collection.models,
           orElse: () => <CategoryModel>[],
         );
-        return AppDropdown<int>(
-          label: tr("category"),
-          required: true,
-          hint: tr("select_category"),
-          value: _categoryId,
-          items: categories
-              .map((c) => DropdownMenuItem(value: c.id, child: Text(c.title)))
-              .toList(),
-          onChanged: (v) => setState(() => _categoryId = v),
-          validator: (v) => v == null ? tr("required") : null,
-        );
+        // Yangi kategoriya ro'yxat yuklanguncha tanlanmagan ko'rinadi
+        final safeValue =
+            categories.any((c) => c.id == _categoryId) ? _categoryId : null;
+        return _withCreateButton(
+            AppDropdown<int>(
+              label: tr("category"),
+              required: true,
+              hint: tr("select_category"),
+              value: safeValue,
+              items: categories
+                  .map((c) =>
+                      DropdownMenuItem(value: c.id, child: Text(c.title)))
+                  .toList(),
+              onChanged: (v) => setState(() => _categoryId = v),
+              validator: (v) => v == null ? tr("required") : null,
+            ),
+            tr("new_category"),
+            _createCategory);
       },
     );
   }
@@ -560,15 +617,19 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
           orElse: () => <FirmaModel>[],
         );
         final safeValue = firms.any((f) => f.id == _firmaId) ? _firmaId : null;
-        return AppDropdown<int>(
-          label: tr("company"),
-          hint: tr("select"),
-          value: safeValue,
-          items: firms
-              .map((f) => DropdownMenuItem(value: f.id, child: Text(f.title)))
-              .toList(),
-          onChanged: (v) => setState(() => _firmaId = v),
-        );
+        return _withCreateButton(
+            AppDropdown<int>(
+              label: tr("company"),
+              hint: tr("select"),
+              value: safeValue,
+              items: firms
+                  .map((f) =>
+                      DropdownMenuItem(value: f.id, child: Text(f.title)))
+                  .toList(),
+              onChanged: (v) => setState(() => _firmaId = v),
+            ),
+            tr("add_firma"),
+            _createFirma);
       },
     );
   }
