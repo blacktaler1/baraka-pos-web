@@ -14,7 +14,8 @@ class AppPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (context.isMobile && toolbar != null) return _buildMobile(context);
+    // Sarlavha ro'yxat bilan birga suriladi (telefon va keng ekranda ham)
+    if (toolbar != null) return _buildScrolling(context);
     return ColoredBox(
       color: AppColors.canvas,
       child: Padding(
@@ -40,9 +41,9 @@ class AppPage extends StatelessWidget {
 }
 
 extension on AppPage {
-  /// Telefon: sarlavha/statistika ro'yxat bilan birga suriladi (NestedScrollView),
-  /// shunda mahsulotlar uchun butun ekran bo'shaydi
-  Widget _buildMobile(BuildContext context) {
+  /// Sarlavha/statistika ro'yxat bilan birga suriladi (NestedScrollView),
+  /// shunda ro'yxat uchun butun ekran bo'shaydi
+  Widget _buildScrolling(BuildContext context) {
     final gutter = context.pageGutter;
     return ColoredBox(
       color: AppColors.canvas,

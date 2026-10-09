@@ -1,3 +1,9 @@
+import 'package:baraka_pos/shared/aplication/configs/di/injection_container.dart';
+import 'package:flutter/services.dart';
+import '../../domain/payload/update_loan_payload.dart';
+import '../../domain/repository/firma_repository.dart';
+import '../../../cash/presentation/widgets/thousands_separator_formatter.dart';
+import '../blocs/blocs.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
 import 'package:baraka_pos/shared/design/design.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -48,6 +54,26 @@ class _LoanTabState extends State<LoanTab> {
   int rowsPerPage = 10;
   int totalItems = 0;
   List<String?> cursors = [null];
+
+  void _edit(dynamic item) {
+    showDialog(
+      context: context,
+      builder: (_) => _EditLoanDialog(
+        firmaId: widget.firmaId,
+        loanId: item.id as int,
+        title: item.title as String,
+        debt: item.debt as String,
+        onSaved: () {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(tr("debt_updated"))));
+          _load(cursor: "");
+          context
+              .read<GetByIdFirmaBloc>()
+              .add(GetByIdFirmaStarted(id: widget.firmaId));
+        },
+      ),
+    );
+  }
 
   void _load({required String cursor}) {
     context.read<LoanDebtBloc>().add(LoanDebtStarted(
@@ -254,17 +280,29 @@ class _LoanTabState extends State<LoanTab> {
                         ),
                         if (widget.isDebt)
                           DataCell(
-                            AppButton.secondary(
-                              label: tr("pay_debt"),
-                              icon: Icons.price_check_rounded,
-                              size: AppButtonSize.sm,
-                              onPressed: () => showPayDebtPanel(
-                                context,
-                                title: item.title,
-                                debtPrice: item.debt,
-                                firmaId: widget.firmaId,
-                                debtId: item.id,
-                              ),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AppIconButton(
+                                  icon: Icons.edit_rounded,
+                                  tooltip: tr("edit_debt"),
+                                  color: AppColors.info,
+                                  onPressed: () => _edit(item),
+                                ),
+                                const SizedBox(width: AppSpacing.xxs),
+                                AppButton.secondary(
+                                  label: tr("pay_debt"),
+                                  icon: Icons.price_check_rounded,
+                                  size: AppButtonSize.sm,
+                                  onPressed: () => showPayDebtPanel(
+                                    context,
+                                    title: item.title,
+                                    debtPrice: item.debt,
+                                    firmaId: widget.firmaId,
+                                    debtId: item.id,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                       ]);
@@ -287,6 +325,140 @@ class _LoanTabState extends State<LoanTab> {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// Firma qarzini tahrirlash oynasi
+class _EditLoanDialog extends StatefulWidget {
+  final int firmaId;
+  final int loanId;
+  final String title;
+  final String debt;
+  final VoidCallback onSaved;
+
+  const _EditLoanDialog({
+    required this.firmaId,
+    required this.loanId,
+    required this.title,
+    required this.debt,
+    required this.onSaved,
+  });
+
+  @override
+  State<_EditLoanDialog> createState() => _EditLoanDialogState();
+}
+
+class _EditLoanDialogState extends State<_EditLoanDialog> {
+  late final num _originalDebt = num.tryParse(widget.debt) ?? 0;
+  late final _titleCtrl = TextEditingController(text: widget.title);
+  late final _debtCtrl = TextEditingController(
+    text: formatCurrency(_originalDebt.toStringAsFixed(0), withCurrency: false),
+  );
+  bool _saving = false;
+
+  @override
+  void dispose() {
+    _titleCtrl.dispose();
+    _debtCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final title = _titleCtrl.text.trim();
+    final debt = parseAmount(_debtCtrl.text);
+    final payload = UpdateLoanPayload(
+      firmaId: widget.firmaId,
+      loanId: widget.loanId,
+      title: title != widget.title ? title : null,
+      debt: debt != _originalDebt ? debt : null,
+    );
+    if (payload.isEmpty) {
+      Navigator.pop(context);
+      return;
+    }
+    setState(() => _saving = true);
+    final result = await sl<FirmaRepository>().updateLoan(payload: payload);
+    if (!mounted) return;
+    result.when(
+      success: (_) {
+        Navigator.pop(context);
+        widget.onSaved();
+      },
+      failure: (error) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(error.message)));
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 440),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                children: [
+                  const AppSoftIcon(
+                      icon: Icons.edit_note_rounded, color: AppColors.info),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(tr("edit_debt"), style: AppText.h2),
+                        Text("#${widget.loanId}", style: AppText.small),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              AppTextField(
+                label: tr("description"),
+                controller: _titleCtrl,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              AppTextField(
+                label: tr("debt_amount"),
+                controller: _debtCtrl,
+                prefix:
+                    const Icon(Icons.account_balance_wallet_rounded, size: 18),
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  ThousandsSeparatorFormatter(),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  AppButton.secondary(
+                    label: tr("cancel"),
+                    onPressed: _saving ? null : () => Navigator.pop(context),
+                  ),
+                  AppButton(
+                    label: tr("save"),
+                    icon: Icons.check_circle_rounded,
+                    loading: _saving,
+                    onPressed: _save,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

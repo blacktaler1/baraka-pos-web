@@ -7,7 +7,8 @@
 ```bash
 flutter pub get
 flutter run -d chrome                # ishlab chiqish
-flutter build web --release          # natija: build/web
+flutter build web --release --pwa-strategy=none   # natija: build/web
+# --pwa-strategy=none: keshlovchi service worker o'chiq, aks holda telefonlar eski versiyani ko'rsatadi
 ```
 
 `build/web` papkasini istalgan statik hostingga (nginx, Firebase Hosting, Netlify) qo'ying.
@@ -50,7 +51,7 @@ mos relizdan qayta yuklab oling.
 ## Serverga joylash (mobile.barakaposystem.uz)
 
 ```bash
-flutter build web --release --dart-define=API_BASE_URL=https://mobile.barakaposystem.uz/api
+flutter build web --release --pwa-strategy=none --dart-define=API_BASE_URL=https://mobile.barakaposystem.uz/api
 tar -czf baraka-pos-web.tar.gz -C build/web .
 scp baraka-pos-web.tar.gz deploy/* root@SERVER:/tmp/
 ssh root@SERVER 'bash /tmp/deploy.sh /tmp/baraka-pos-web.tar.gz'

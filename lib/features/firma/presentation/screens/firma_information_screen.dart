@@ -118,33 +118,21 @@ class _FirmaInformationScreenState extends State<FirmaInformationScreen> {
         );
         return AppPage(
           // Telefonda firma kartasi va tablar ham sarlavha bilan birga suriladi
-          toolbar: mobile
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    toolbar,
-                    const SizedBox(height: AppSpacing.sm),
-                    const FirmaInfoCard(),
-                    const SizedBox(height: AppSpacing.md),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: tabs,
-                    ),
-                  ],
-                )
-              : toolbar,
-          child: mobile
-              ? _currentTab()
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const FirmaInfoCard(),
-                    const SizedBox(height: AppSpacing.xl),
-                    tabs,
-                    const SizedBox(height: AppSpacing.md),
-                    Expanded(child: _currentTab()),
-                  ],
-                ),
+          // Firma kartasi va tablar ro'yxat bilan birga suriladi
+          toolbar: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              toolbar,
+              SizedBox(height: mobile ? AppSpacing.sm : AppSpacing.lg),
+              const FirmaInfoCard(),
+              SizedBox(height: mobile ? AppSpacing.md : AppSpacing.xl),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: tabs,
+              ),
+            ],
+          ),
+          child: _currentTab(),
         );
       },
     );

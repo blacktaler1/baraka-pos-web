@@ -1,3 +1,6 @@
+import 'package:baraka_pos/shared/aplication/types/json.dart';
+import '../../domain/payload/update_loan_payload.dart';
+import '../request/update_loan_request.dart';
 import 'package:baraka_pos/features/firma/data/request/_request.dart';
 import 'package:baraka_pos/features/firma/domain/domain.dart';
 import 'package:baraka_pos/features/global/domain/model/no_content_model.dart';
@@ -115,5 +118,16 @@ final class FirmaRepositoryImpl extends FirmaRepository {
           success: (dto) => dto.model(),
           failure: (BaseException e) => e,
         );
+  }
+
+  @override
+  Future<Safed<BaseException, Json>> updateLoan({
+    required UpdateLoanPayload payload,
+  }) {
+    return remote.updateLoan(
+      firmaId: payload.firmaId,
+      loanId: payload.loanId,
+      request: UpdateLoanRequest.fromPayload(payload),
+    );
   }
 }

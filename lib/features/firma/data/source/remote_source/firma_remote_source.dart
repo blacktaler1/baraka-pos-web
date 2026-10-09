@@ -1,3 +1,5 @@
+import 'package:baraka_pos/shared/aplication/types/json.dart';
+import '../../request/update_loan_request.dart';
 import 'package:baraka_pos/features/auth/auth.dart';
 import 'package:baraka_pos/features/firma/data/data.dart';
 import 'package:baraka_pos/features/global/data/data.dart';
@@ -100,6 +102,17 @@ final class FirmaRemoteSource extends RemoteSource {
     ).map(
       success: dataFactory(NoContentDto.fromJson),
       failure: (BaseException e) => e,
+    );
+  }
+
+  Future<Safed<BaseException, Json>> updateLoan({
+    required int firmaId,
+    required int loanId,
+    required UpdateLoanRequest request,
+  }) {
+    return apiPatch(
+      path: "/${globalUser?.warehouseUuid}/firma/$firmaId/loans/$loanId/",
+      request: request,
     );
   }
 }
