@@ -12,9 +12,10 @@ final class ChartDto extends JsonDto<ChartModel> {
 
   List get purchases => json.items("purchases");
 
-  int get totalSales => json.integer("total_sales");
+  num get totalSales => json.number("total_sales");
 
-  int get totalPurchases => json.integer("total_purchases");
+  /// Ombor kirimlari (firmalardan sotib olingan mol)
+  num get totalPurchases => json.number("total_purchases");
 
   @override
   ChartModel model() {
@@ -22,8 +23,8 @@ final class ChartDto extends JsonDto<ChartModel> {
       labels: labels,
       sales: sales,
       purchase: purchases,
-      totalSales: 20,
-      totalPurchase: 16,
+      totalSales: totalSales,
+      totalPurchase: totalPurchases,
     );
   }
 }
