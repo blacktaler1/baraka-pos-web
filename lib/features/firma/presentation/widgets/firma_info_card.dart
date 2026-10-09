@@ -181,8 +181,10 @@ class FirmaInfoCard extends StatelessWidget {
 
   Widget _stats(FirmaModel model) {
     String money(num v) => formatCurrency(v.toString());
-    final paidShare = model.totalDebt > 0
-        ? (model.totalPaid / model.totalDebt).clamp(0, 1).toDouble()
+    // API'da total_debt — qolgan qarz; umumiy qarz = to'langan + qolgan
+    final num totalOwed = model.totalPaid + model.remainder;
+    final paidShare = totalOwed > 0
+        ? (model.totalPaid / totalOwed).clamp(0, 1).toDouble()
         : 1.0;
 
     return Column(
@@ -202,7 +204,7 @@ class FirmaInfoCard extends StatelessWidget {
               Expanded(
                 child: _StatTile(
                   label: tr("total_debt"),
-                  value: money(model.totalDebt),
+                  value: money(totalOwed),
                   icon: Icons.account_balance_wallet_rounded,
                   color: AppColors.warning,
                 ),

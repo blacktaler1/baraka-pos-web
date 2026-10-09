@@ -1,3 +1,4 @@
+import 'package:go_router/go_router.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
 import 'package:baraka_pos/shared/design/design.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -138,6 +139,10 @@ class _ShiftsScreenState extends State<ShiftsScreen> {
       ],
       child: AppPage(
         toolbar: AppPageHeader(
+          leading: AppBackButton(
+            tooltip: tr("back_to_cash"),
+            onTap: () => context.go("/cash"),
+          ),
           icon: Icons.manage_history_rounded,
           title: tr("cash_shifts"),
           actions: [

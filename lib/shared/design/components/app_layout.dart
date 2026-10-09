@@ -14,6 +14,7 @@ class AppPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (context.isMobile && toolbar != null) return _buildMobile(context);
     return ColoredBox(
       color: AppColors.canvas,
       child: Padding(
@@ -33,6 +34,52 @@ class AppPage extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+extension on AppPage {
+  /// Telefon: sarlavha/statistika ro'yxat bilan birga suriladi (NestedScrollView),
+  /// shunda mahsulotlar uchun butun ekran bo'shaydi
+  Widget _buildMobile(BuildContext context) {
+    final gutter = context.pageGutter;
+    return ColoredBox(
+      color: AppColors.canvas,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: NestedScrollView(
+              headerSliverBuilder: (context, _) => [
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                      gutter, gutter, gutter, AppSpacing.sm),
+                  sliver: SliverToBoxAdapter(child: toolbar!),
+                ),
+              ],
+              body: Builder(
+                // Ichki ro'yxat tashqi skroll bilan bog'lanishi uchun
+                // (web/desktop platformalarda ham)
+                builder: (context) => PrimaryScrollController(
+                  controller: PrimaryScrollController.of(context),
+                  automaticallyInheritForPlatforms:
+                      TargetPlatform.values.toSet(),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: gutter),
+                    child: child,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          if (footer != null)
+            Padding(
+              padding:
+                  EdgeInsets.fromLTRB(gutter, AppSpacing.xs, gutter, gutter),
+              child: footer!,
+            ),
+        ],
       ),
     );
   }

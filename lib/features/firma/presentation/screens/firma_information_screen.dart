@@ -1,3 +1,5 @@
+import 'package:baraka_pos/shared/aplication/configs/di/injection_container.dart';
+import 'package:baraka_pos/features/store/presentation/blocs/blocs.dart';
 import 'package:baraka_pos/shared/design/design.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +58,12 @@ class _FirmaInformationScreenState extends State<FirmaInformationScreen> {
   }
 
   Widget _currentTab() => switch (currentTab) {
-        0 => ProductTab(firmaId: widget.firmaId),
+        // Ombor sahifasi bilan umumiy bloc ishlatilsa, ikkala ro'yxat
+        // bir-birining natijasini ko'rsatib qo'yadi — firma uchun alohida
+        0 => BlocProvider(
+            create: (_) => AllProductBloc(repository: sl()),
+            child: ProductTab(firmaId: widget.firmaId),
+          ),
         1 => PaymentTab(firmaId: widget.firmaId),
         _ => DebtTab(firmaId: widget.firmaId),
       };
@@ -87,51 +94,47 @@ class _FirmaInformationScreenState extends State<FirmaInformationScreen> {
             (Icons.request_quote_rounded, "debts_section".tr()),
           ],
         );
+        final toolbar = AppToolbar(
+          leading: [
+            AppButton.secondary(
+              label: "back_to_firma".tr(),
+              icon: Icons.arrow_back_ios_new_rounded,
+              onPressed: () => context.go("/firma"),
+            ),
+          ],
+          trailing: [
+            AppIconButton(
+              icon: Icons.autorenew_rounded,
+              tooltip: tr("refresh"),
+              onPressed: _refresh,
+            ),
+            AppButton.danger(
+              label: "delete".tr(),
+              icon: Icons.delete_forever_rounded,
+              loading: state is DeleteFirmaPrepare,
+              onPressed: _delete,
+            ),
+          ],
+        );
         return AppPage(
-          toolbar: AppToolbar(
-            leading: [
-              AppButton.secondary(
-                label: "back_to_firma".tr(),
-                icon: Icons.arrow_back_ios_new_rounded,
-                onPressed: () => context.go("/firma"),
-              ),
-            ],
-            trailing: [
-              AppIconButton(
-                icon: Icons.autorenew_rounded,
-                tooltip: tr("refresh"),
-                onPressed: _refresh,
-              ),
-              AppButton.danger(
-                label: "delete".tr(),
-                icon: Icons.delete_forever_rounded,
-                loading: state is DeleteFirmaPrepare,
-                onPressed: _delete,
-              ),
-            ],
-          ),
-          // Telefonda butun sahifa suriladi, tab mazmuni o'z balandligida
-          child: mobile
-              ? LayoutBuilder(
-                  builder: (context, constraints) => SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        const FirmaInfoCard(),
-                        const SizedBox(height: AppSpacing.md),
-                        SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: tabs,
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        SizedBox(
-                          height: constraints.maxHeight,
-                          child: _currentTab(),
-                        ),
-                      ],
+          // Telefonda firma kartasi va tablar ham sarlavha bilan birga suriladi
+          toolbar: mobile
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    toolbar,
+                    const SizedBox(height: AppSpacing.sm),
+                    const FirmaInfoCard(),
+                    const SizedBox(height: AppSpacing.md),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: tabs,
                     ),
-                  ),
+                  ],
                 )
+              : toolbar,
+          child: mobile
+              ? _currentTab()
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
