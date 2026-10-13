@@ -28,16 +28,26 @@ final class ExpenseCategoriesModel extends Model {
   final int uncategorizedCount;
   final num uncategorizedAmount;
 
+  /// Yuklashda xato bo'lsa — xabar matni
+  final String? error;
+
   const ExpenseCategoriesModel({
     required this.categories,
     required this.uncategorizedCount,
     required this.uncategorizedAmount,
+    this.error,
   });
+
+  const ExpenseCategoriesModel.failed(String this.error)
+      : categories = const [],
+        uncategorizedCount = 0,
+        uncategorizedAmount = 0;
 
   @override
   List<String> get props => [
         "categories: $categories",
         "uncategorized_count: $uncategorizedCount",
         "uncategorized_amount: $uncategorizedAmount",
+        "error: $error",
       ];
 }

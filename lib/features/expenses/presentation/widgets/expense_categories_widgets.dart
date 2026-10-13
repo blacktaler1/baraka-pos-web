@@ -96,7 +96,7 @@ Future<ExpenseCategoryModel?> createExpenseCategory(
 
 /// Kategoriyalarni boshqarish: qo'shish, nomini o'zgartirish, o'chirish
 Future<void> showExpenseCategoriesManager(BuildContext context) {
-  final cubit = context.read<ExpenseCategoriesCubit>();
+  final cubit = context.read<ExpenseCategoriesCubit>()..loadIfNeeded();
   return showDialog<void>(
     context: context,
     builder: (dialogContext) => BlocProvider.value(
@@ -165,6 +165,13 @@ class _CategoriesManager extends StatelessWidget {
                   builder: (context, data) {
                     final categories = data?.categories ?? const [];
                     if (data == null) return const AppLoading();
+                    if (data.error != null) {
+                      return AppErrorState(
+                        message: data.error!,
+                        onRetry: () =>
+                            context.read<ExpenseCategoriesCubit>().load(),
+                      );
+                    }
                     if (categories.isEmpty) {
                       return Padding(
                         padding: const EdgeInsets.all(AppSpacing.lg),

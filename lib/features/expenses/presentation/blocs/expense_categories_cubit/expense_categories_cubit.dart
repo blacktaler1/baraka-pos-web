@@ -17,12 +17,15 @@ class ExpenseCategoriesCubit extends Cubit<ExpenseCategoriesModel?> {
       success: (model) {
         if (!isClosed) emit(model);
       },
-      failure: (_) {},
+      // Xato holatda ham cheksiz yuklanish bo'lmasligi uchun
+      failure: (error) {
+        if (!isClosed) emit(ExpenseCategoriesModel.failed(error.message));
+      },
     );
   }
 
   Future<void> loadIfNeeded() async {
-    if (state == null) await load();
+    if (state == null || state?.error != null) await load();
   }
 
   Future<(ExpenseCategoryModel?, String?)> create(String title) async {
