@@ -13,6 +13,11 @@ final class TransactionModel extends Model {
   final CashierModel cashier;
   final String created;
   final String modified;
+  final int? customerId;
+  final String customerName;
+
+  /// Qarz savdosida mijoz to'lagan summa
+  final String debtPaid;
 
   const TransactionModel({
     required this.id,
@@ -26,6 +31,9 @@ final class TransactionModel extends Model {
     required this.cashier,
     required this.created,
     required this.modified,
+    this.customerId,
+    this.customerName = "",
+    this.debtPaid = "0",
   });
 
   @override
@@ -41,5 +49,7 @@ final class TransactionModel extends Model {
         "cashier: $cashier",
         "created: $created",
         "modified: $modified",
+        "customer: $customerId",
+        "debt_paid: $debtPaid",
       ];
 }

@@ -7,6 +7,8 @@ final class ItemModel extends Model {
   final String productTitle;
   final String productUnit;
   final num subTotal;
+  final bool isPieceSale;
+  final int packSize;
 
   const ItemModel({
     required this.id,
@@ -15,6 +17,8 @@ final class ItemModel extends Model {
     required this.productTitle,
     required this.productUnit,
     required this.subTotal,
+    this.isPieceSale = false,
+    this.packSize = 0,
   });
   @override
   List<String> get props => [

@@ -7,6 +7,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../../features/cash/domain/model/daily_checks_model.dart';
+import 'debt_receipt_data.dart';
 import 'local_sources.dart';
 
 /// Termal printer o'rniga chekni 80 mm lentali PDF ko'rinishida tayyorlaydi
@@ -127,6 +128,61 @@ class PdfReceiptService {
               _kv('contact'.tr(), user!.warehouseContact),
             pw.SizedBox(height: 10),
             _line("* $phrase *", bold: true, align: pw.TextAlign.center),
+          ],
+        ),
+      ),
+    );
+    return doc.save();
+  }
+
+  /// Qarz cheki: bitta faktura yoki mijozning barcha qarzlari
+  static Future<Uint8List> buildDebtReceipt({
+    required DebtReceiptData data,
+    required UserTableData? user,
+  }) async {
+    final doc = pw.Document(theme: await _loadTheme());
+    final currency = 'currency_uzs'.tr();
+    String money(num value) => _fmt(value.toStringAsFixed(0));
+
+    doc.addPage(
+      pw.Page(
+        pageFormat: _rollFormat,
+        build: (_) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            _line(user?.warehouseShopName ?? 'store_name'.tr(),
+                bold: true, size: 15, align: pw.TextAlign.center),
+            _line('debt_receipt'.tr(),
+                bold: true, size: 11, align: pw.TextAlign.center),
+            pw.SizedBox(height: 6),
+            _line("${'customer'.tr()}: ${data.customerName}"),
+            if (data.phone.isNotEmpty) _line("${'phone'.tr()}: ${data.phone}"),
+            _line(
+                "${'date'.tr()}: ${DateFormat('dd.MM.yyyy HH:mm').format(DateTime.now())}"),
+            _divider(),
+            for (final invoice in data.invoices) ...[
+              _kv(invoice.label, invoice.date, bold: true),
+              if (invoice.note.isNotEmpty) _line(invoice.note, size: 8),
+              for (final line in invoice.lines)
+                _kv("${line.title} x ${line.quantity}", money(line.subtotal)),
+              pw.SizedBox(height: 2),
+              _kv('grand_total'.tr(), "${money(invoice.total)} $currency"),
+              if (invoice.paid > 0)
+                _kv('paid_amount'.tr(), "${money(invoice.paid)} $currency"),
+              _kv('remaining_debt'.tr(), "${money(invoice.remaining)} $currency",
+                  bold: true),
+              _divider(),
+            ],
+            _kv(
+              'total_debt'.tr().toUpperCase(),
+              "${money(data.totalRemaining)} $currency",
+              bold: true,
+              size: 12,
+            ),
+            if ((user?.warehouseContact ?? '').isNotEmpty) ...[
+              pw.SizedBox(height: 4),
+              _kv('contact'.tr(), user!.warehouseContact),
+            ],
           ],
         ),
       ),

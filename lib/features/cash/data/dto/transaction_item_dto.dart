@@ -10,13 +10,17 @@ final class TransactionItemDto extends JsonDto<TransactionItemModel> {
 
   int get id => json.integer('id');
 
-  int get productId => json.object('product').integer('id');
+  int get productId =>
+      json.object('product').integer('id', fallback: json.integer('product_id'));
 
-  String get productTitle => json.object('product').text('title');
+  String get productTitle =>
+      json.object('product').text('title', fallback: json.text('product_title'));
 
-  String get productUnit => json.object('product').text('unit');
+  String get productUnit =>
+      json.object('product').text('unit', fallback: json.text('product_unit'));
 
-  num get productPrice => json.object('product').number('price');
+  num get productPrice =>
+      json.object('product').number('price', fallback: json.number('price'));
 
   int get packSize => json.integer('pack_size');
 

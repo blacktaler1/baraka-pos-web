@@ -13,13 +13,18 @@ Future<void> showDebtDetailsPanel(
   BuildContext context, {
   required int customerId,
   required String customerName,
+  String phone = "",
 }) {
+  _debtStatus.value = 'unpaid';
   context.read<ByCustomerBloc>().add(ByCustomerEvent(id: customerId));
   return showAppSidePanel(
     context,
     width: AppSizes.sidePanelWidthWide,
-    builder: (_) =>
-        DebtDetailsDialog(customerId: customerId, customerName: customerName),
+    builder: (_) => DebtDetailsDialog(
+      customerId: customerId,
+      customerName: customerName,
+      phone: phone,
+    ),
   );
 }
 
@@ -40,19 +45,43 @@ Future<void> showDebtorHistoryPanel(
 class DebtDetailsDialog extends StatelessWidget {
   final int customerId;
   final String customerName;
+  final String phone;
 
   const DebtDetailsDialog({
     super.key,
     required this.customerId,
     required this.customerName,
+    this.phone = "",
   });
+
+  Future<void> _addDebt(BuildContext context) async {
+    final added = await showAddDebtDialog(
+      context,
+      customerId: customerId,
+      customerName: customerName,
+    );
+    if (added == true && context.mounted) {
+      _snack(context, tr("debt_added"));
+      _refresh(context);
+    }
+  }
+
+  void _print(BuildContext context, List<ByCustomerItemModel> debts) =>
+      printDebtReceipt(
+        context,
+        customerName: customerName,
+        phone: phone,
+        debts: debts,
+      );
 
   void _snack(BuildContext context, String message) =>
       ScaffoldMessenger.of(context)
           .showSnackBar(SnackBar(content: Text(message)));
 
   void _refresh(BuildContext context) {
-    context.read<ByCustomerBloc>().add(ByCustomerEvent(id: customerId));
+    context
+        .read<ByCustomerBloc>()
+        .add(ByCustomerEvent(id: customerId, status: _debtStatus.value));
     context.read<GetDebtorsListBloc>().add(const GetDebtorsListEvent(
           hasDebt: null,
           nearingDeadline: null,
@@ -117,7 +146,18 @@ class DebtDetailsDialog extends StatelessWidget {
             },
           ),
         ],
-        body: BlocBuilder<ByCustomerBloc, ByCustomerState>(
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _DebtToolbar(
+              onStatus: (status) => context
+                  .read<ByCustomerBloc>()
+                  .add(ByCustomerEvent(id: customerId, status: status)),
+              onPrintAll: (debts) => _print(context, debts),
+              onAddDebt: canAddManualDebt ? () => _addDebt(context) : null,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            BlocBuilder<ByCustomerBloc, ByCustomerState>(
           builder: (context, state) {
             return state.when(
               initial: () => const SizedBox.shrink(),
@@ -147,6 +187,7 @@ class DebtDetailsDialog extends StatelessWidget {
                       if (i > 0) const SizedBox(height: AppSpacing.sm),
                       _DebtInvoiceCard(
                         debt: debts[i],
+                        onPrint: () => _print(context, [debts[i]]),
                         onEdited: () {
                           _snack(context, tr("debt_updated"));
                           _refresh(context);
@@ -158,6 +199,8 @@ class DebtDetailsDialog extends StatelessWidget {
               },
             );
           },
+        ),
+          ],
         ),
       ),
     );
@@ -265,8 +308,9 @@ class _DebtInvoiceCard extends StatelessWidget {
 
   /// Tahrirlangandan keyin ro'yxatni yangilash
   final VoidCallback? onEdited;
+  final VoidCallback? onPrint;
 
-  const _DebtInvoiceCard({required this.debt, this.onEdited});
+  const _DebtInvoiceCard({required this.debt, this.onEdited, this.onPrint});
 
   @override
   Widget build(BuildContext context) {
@@ -310,7 +354,12 @@ class _DebtInvoiceCard extends StatelessWidget {
             size: 40,
           ),
           title:
-              Text("${tr("invoice")} #${debt.id}", style: AppText.bodyStrong),
+              Text(
+            debt.details.transactionId.isEmpty
+                ? "${tr("manual_debt")} #${debt.id}"
+                : "${tr("invoice")} #${debt.id}",
+            style: AppText.bodyStrong,
+          ),
           subtitle: Wrap(
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
@@ -344,6 +393,14 @@ class _DebtInvoiceCard extends StatelessWidget {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Telefonda chek tugmasi faktura ichida (summa sig'ishi uchun)
+              if (onPrint != null && !context.isMobile)
+                AppIconButton(
+                  icon: Icons.print_rounded,
+                  tooltip: tr("print_receipt"),
+                  color: AppColors.primary,
+                  onPressed: onPrint,
+                ),
               if (_canEditDebt)
                 AppIconButton(
                   icon: Icons.edit_rounded,
@@ -381,6 +438,7 @@ class _DebtInvoiceCard extends StatelessWidget {
                   ],
                 ),
               ),
+            if (debt.items.models.isNotEmpty)
             Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
@@ -403,7 +461,7 @@ class _DebtInvoiceCard extends StatelessWidget {
                           const SizedBox(width: AppSpacing.xs),
                           Expanded(
                             child: Text(
-                              "${item.productTitle} × ${item.quantity}",
+                              "${item.productTitle} × ${saleQuantityLabel(quantity: item.quantity, unit: item.productUnit, isPieceSale: item.isPieceSale, packSize: item.packSize)}",
                               style: AppText.body,
                             ),
                           ),
@@ -417,6 +475,16 @@ class _DebtInvoiceCard extends StatelessWidget {
                 ],
               ),
             ),
+            if (onPrint != null && context.isMobile)
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.sm),
+                child: AppButton.secondary(
+                  label: tr("print_receipt"),
+                  icon: Icons.print_rounded,
+                  size: AppButtonSize.sm,
+                  onPressed: onPrint,
+                ),
+              ),
           ],
         ),
       ),
@@ -911,6 +979,91 @@ class _EditDebtDialogState extends State<_EditDebtDialog> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Panel ochiq paytdagi qarz holati filtri
+final _debtStatus = ValueNotifier<String>('unpaid');
+
+/// Holat filtri (to'lanmagan/to'langan/hammasi), umumiy chek va qarz qo'shish
+class _DebtToolbar extends StatelessWidget {
+  final ValueChanged<String> onStatus;
+  final ValueChanged<List<ByCustomerItemModel>> onPrintAll;
+  final VoidCallback? onAddDebt;
+
+  const _DebtToolbar({
+    required this.onStatus,
+    required this.onPrintAll,
+    required this.onAddDebt,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ValueListenableBuilder<String>(
+          valueListenable: _debtStatus,
+          builder: (context, status, _) => Wrap(
+            spacing: AppSpacing.xs,
+            children: [
+              for (final (value, label) in [
+                ('unpaid', tr("unpaid_debts")),
+                ('paid', tr("paid_debts")),
+                ('all', tr("all")),
+              ])
+                ChoiceChip(
+                  selected: status == value,
+                  showCheckmark: false,
+                  label: Text(label),
+                  labelStyle: AppText.small.copyWith(
+                    color: status == value ? Colors.white : AppColors.ink,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  // Hover paytida ham tanlangan rang saqlansin
+                  color: WidgetStateProperty.resolveWith((states) =>
+                      states.contains(WidgetState.selected)
+                          ? AppColors.primary
+                          : AppColors.surface),
+                  side: BorderSide(
+                    color:
+                        status == value ? AppColors.primary : AppColors.border,
+                  ),
+                  onSelected: (_) {
+                    if (status == value) return;
+                    _debtStatus.value = value;
+                    onStatus(value);
+                  },
+                ),
+            ],
+          ),
+        ),
+        BlocBuilder<ByCustomerBloc, ByCustomerState>(
+          builder: (context, state) {
+            final unpaid = state is ByCustomerSuccess
+                ? state.model.debtCollection.models
+                    .where((d) => !d.isPaid)
+                    .toList()
+                : <ByCustomerItemModel>[];
+            return AppButton.secondary(
+              label: tr("print_all_debts"),
+              icon: Icons.print_rounded,
+              size: AppButtonSize.sm,
+              onPressed: unpaid.isEmpty ? null : () => onPrintAll(unpaid),
+            );
+          },
+        ),
+        if (onAddDebt != null)
+          AppButton.secondary(
+            label: tr("add_debt"),
+            icon: Icons.playlist_add_rounded,
+            size: AppButtonSize.sm,
+            onPressed: onAddDebt,
+          ),
+      ],
     );
   }
 }

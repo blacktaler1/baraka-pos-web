@@ -512,5 +512,22 @@
   "uncategorized": "Kategoriyasiz",
   "all": "Hammasi",
   "expense_categories_server_outdated": "Server hali yangilanmagan: kategoriyalar serverga chiqarilgandan keyin ishlaydi.",
-  "expense_categories_load_failed": "Kategoriyalarni yuklab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring."
+  "expense_categories_load_failed": "Kategoriyalarni yuklab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring.",
+  "debt_receipt": "Qarz cheki",
+  "print_all_debts": "Umumiy chek",
+  "manual_debt": "Qo'lda kiritilgan qarz",
+  "unpaid_debts": "To'lanmagan",
+  "paid_debts": "To'langan",
+  "debt_added": "Qarz qo'shildi",
+  "new_debtor": "Yangi qarzdor",
+  "debtor_created": "Qarzdor yaratildi",
+  "initial_debt": "Boshlang'ich qarz",
+  "initial_debt_hint": "Ixtiyoriy: eski daftardagi qarz",
+  "only_debtors": "Qarzdorlar",
+  "all_customers": "Hammasi (to'laganlar ham)",
+  "edit_sale": "Sotuvni tahrirlash",
+  "payment_type": "To'lov turi",
+  "sale_needs_item": "Sotuvda kamida bitta tovar qolishi kerak. Butunlay qaytarish uchun vozvrat qiling.",
+  "edit_refund": "Vozvratni tahrirlash",
+  "edit_refund_hint": "Qaytarilgan miqdorni kamaytirsangiz, tovar yana sotilgan hisoblanadi. 0 — vozvrat bekor qilinadi."
 }

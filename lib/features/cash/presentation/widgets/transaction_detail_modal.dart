@@ -1,3 +1,4 @@
+import 'transaction_edit_panel.dart';
 import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
 import 'package:baraka_pos/shared/design/design.dart';
@@ -7,11 +8,11 @@ import 'package:flutter/material.dart';
 import '../../../../shared/presentation/widgets/receipt_share.dart';
 import '../../domain/model/transaction_model.dart';
 
-Future<void> showTransactionDetailPanel(
+Future<bool?> showTransactionDetailPanel(
   BuildContext context,
   TransactionModel transaction,
 ) {
-  return showAppSidePanel(
+  return showAppSidePanel<bool>(
     context,
     builder: (_) => TransactionDetailModal(transaction: transaction),
   );
@@ -52,6 +53,9 @@ class TransactionDetailModal extends StatelessWidget {
               "${transaction.totalQuantity} ${tr("dona")}"
             ),
             (tr("cashier_name"), transaction.cashier.name),
+            (tr("payment_type"), tr(transaction.paymentMethod)),
+            if (transaction.customerName.isNotEmpty)
+              (tr("customer"), transaction.customerName),
           ]),
           const SizedBox(height: AppSpacing.xl),
           Text(tr("products_list"), style: AppText.h3),
@@ -81,6 +85,17 @@ class TransactionDetailModal extends StatelessWidget {
           label: tr("close"),
           onPressed: () => Navigator.pop(context),
         ),
+        if (canEditSales)
+          AppButton.secondary(
+            label: tr("edit"),
+            icon: Icons.edit_rounded,
+            onPressed: () async {
+              final saved = await showTransactionEditPanel(context, transaction);
+              if (saved == true && context.mounted) {
+                Navigator.pop(context, true);
+              }
+            },
+          ),
         AppButton(
           label: tr("send_pdf"),
           icon: Icons.ios_share_rounded,

@@ -27,6 +27,8 @@ final class ItemDto extends JsonDto<ItemModel> {
       productTitle: productTitle,
       productUnit: productUnit,
       subTotal: subTotal,
+      isPieceSale: json['is_piece_sale'] == true,
+      packSize: json.integer('pack_size'),
     );
   }
 }

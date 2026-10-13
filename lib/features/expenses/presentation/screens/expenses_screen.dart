@@ -312,8 +312,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           color: selected ? Colors.white : AppColors.ink,
           fontWeight: FontWeight.w600,
         ),
-        selectedColor: AppColors.primary,
-        backgroundColor: AppColors.surface,
+        // Hover paytida ham tanlangan rang saqlansin
+        color: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.primary
+                : AppColors.surface),
         side: BorderSide(
           color: selected ? AppColors.primary : AppColors.border,
         ),

@@ -1,12 +1,14 @@
+import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
+import 'transaction_edit_panel.dart';
 import 'package:baraka_pos/features/cash/cash.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
 import 'package:baraka_pos/shared/design/design.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
-Future<void> showRefundDetailPanel(
+Future<bool?> showRefundDetailPanel(
     BuildContext context, GetRefundModel refund) {
-  return showAppSidePanel(
+  return showAppSidePanel<bool>(
     context,
     builder: (_) => RefundDetailModal(refund: refund),
   );
@@ -78,7 +80,7 @@ class RefundDetailModal extends StatelessWidget {
             if (i > 0) const Divider(),
             AppLineItem(
               title: items[i].productTitle,
-              subtitle: "${tr("quantity")}: ${items[i].quantity}",
+              subtitle: "${tr("quantity")}: ${saleQuantityLabel(quantity: items[i].quantity, unit: items[i].productUnit, isPieceSale: items[i].isPieceSale, packSize: items[i].packSize)}",
               trailing: formatCurrency(items[i].subtotal.toString()),
             ),
           ],
@@ -95,6 +97,17 @@ class RefundDetailModal extends StatelessWidget {
           label: tr("close"),
           onPressed: () => Navigator.pop(context),
         ),
+        if (canEditSales)
+          AppButton(
+            label: tr("edit"),
+            icon: Icons.edit_rounded,
+            onPressed: () async {
+              final saved = await showRefundEditDialog(context, refund);
+              if (saved == true && context.mounted) {
+                Navigator.pop(context, true);
+              }
+            },
+          ),
       ],
     );
   }

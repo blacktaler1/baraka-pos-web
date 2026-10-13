@@ -4,8 +4,10 @@ import 'package:baraka_pos/shared/data/data.dart';
 
 final class ByCustomerRequest extends RemoteRequest<ByCustomerPayload> {
   final int id;
+  final String status;
   ByCustomerRequest.fromPayload(super.payload)
       : id = payload.id,
+        status = payload.status,
         super.fromPayload();
 
   @override
@@ -15,5 +17,5 @@ final class ByCustomerRequest extends RemoteRequest<ByCustomerPayload> {
   Map<String, String> path() => {};
 
   @override
-  Map<String, String> query() => {};
+  Map<String, String> query() => {"status": status};
 }

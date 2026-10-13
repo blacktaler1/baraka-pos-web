@@ -207,7 +207,12 @@ class _TransactionScreenState extends State<TransactionScreen> {
               AppIconButton(
                 icon: Icons.visibility_rounded,
                 tooltip: tr("view_details"),
-                onPressed: () => showTransactionDetailPanel(context, t),
+                onPressed: () async {
+                  final edited = await showTransactionDetailPanel(context, t);
+                  if (edited == true && mounted) {
+                    loadTransactionData(cursor: cursors[currentPage - 1] ?? "");
+                  }
+                },
               ),
               if (globalUser?.canRefund ?? true) ...[
                 const SizedBox(width: AppSpacing.xxs),

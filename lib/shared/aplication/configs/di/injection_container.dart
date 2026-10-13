@@ -1,3 +1,4 @@
+import '../../../data/sources/api_json_source.dart';
 import 'package:baraka_pos/features/cash/cash.dart';
 import 'package:baraka_pos/features/debtors/debtors.dart';
 import 'package:baraka_pos/features/firma/data/data.dart';
@@ -129,6 +130,12 @@ Future<void> initDependencies() async {
 
   sl.registerLazySingleton<ExpensesRemoteSource>(
     () => ExpensesRemoteSource(
+      client: sl(),
+    ),
+  );
+
+  sl.registerLazySingleton<ApiJsonSource>(
+    () => ApiJsonSource(
       client: sl(),
     ),
   );

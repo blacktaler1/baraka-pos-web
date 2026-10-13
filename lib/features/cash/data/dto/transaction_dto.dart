@@ -46,6 +46,9 @@ final class TransactionDto extends JsonDto<TransactionModel> {
       cashier: cashier,
       created: created,
       modified: modified,
+      customerId: json["customer"] == null ? null : json.integer('customer'),
+      customerName: json.text('customer_name'),
+      debtPaid: json.text('debt_paid', fallback: "0"),
     );
   }
 }

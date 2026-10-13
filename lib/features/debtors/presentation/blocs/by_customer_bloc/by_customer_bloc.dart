@@ -23,6 +23,7 @@ class ByCustomerBloc extends Bloc<ByCustomerEvent, ByCustomerState> {
     final result = await repository.byCustomer(
       payload: ByCustomerPayload(
         id: event.id,
+        status: event.status,
       ),
     );
 

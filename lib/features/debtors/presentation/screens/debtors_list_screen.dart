@@ -13,6 +13,9 @@ class DebtorsListScreen extends StatefulWidget {
 }
 
 class _DebtorsListScreenState extends State<DebtorsListScreen> {
+  // true — qarzini to'lab bo'lganlar ham ko'rinadi
+  bool _showAll = false;
+
   @override
   void initState() {
     super.initState();
@@ -21,8 +24,8 @@ class _DebtorsListScreenState extends State<DebtorsListScreen> {
 
   void _loadData() {
     context.read<GetDebtorsListBloc>().add(
-          const GetDebtorsListEvent(
-            hasDebt: null,
+          GetDebtorsListEvent(
+            hasDebt: _showAll ? false : null,
             nearingDeadline: null,
             search: null,
             ordering: null,
@@ -35,6 +38,7 @@ class _DebtorsListScreenState extends State<DebtorsListScreen> {
 
   // Sanani formatlash funksiyasi: 2026-01-30 -> 30-Yan, 2026
   String _formatDeadline(String dateStr) {
+    if (dateStr.isEmpty) return "—";
     final date = _deadline(dateStr);
     if (date == null) return dateStr.split('T').first;
     return DateFormat('dd-MMM, yyyy').format(date);
@@ -93,12 +97,62 @@ class _DebtorsListScreenState extends State<DebtorsListScreen> {
     );
   }
 
+  Future<void> _createDebtor() async {
+    final created = await showCreateDebtorDialog(context);
+    if (created != true || !mounted) return;
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(tr("debtor_created"))));
+    // Qarzsiz yaratilgan mijoz ham ko'rinsin
+    setState(() => _showAll = true);
+    _loadData();
+  }
+
+  Widget _filterToggle() {
+    return Wrap(
+      spacing: AppSpacing.xs,
+      children: [
+        for (final (all, label) in [
+          (false, tr("only_debtors")),
+          (true, tr("all_customers")),
+        ])
+          ChoiceChip(
+            selected: _showAll == all,
+            showCheckmark: false,
+            label: Text(label),
+            labelStyle: AppText.small.copyWith(
+              color: _showAll == all ? Colors.white : AppColors.ink,
+              fontWeight: FontWeight.w600,
+            ),
+            // Hover paytida ham tanlangan rang saqlansin
+            color: WidgetStateProperty.resolveWith((states) =>
+                states.contains(WidgetState.selected)
+                    ? AppColors.primary
+                    : AppColors.surface),
+            side: BorderSide(
+              color: _showAll == all ? AppColors.primary : AppColors.border,
+            ),
+            onSelected: (_) {
+              if (_showAll == all) return;
+              setState(() => _showAll = all);
+              _loadData();
+            },
+          ),
+      ],
+    );
+  }
+
   Widget _header(BuildContext context, int count) {
     return AppPageHeader(
       icon: Icons.groups_rounded,
       title: tr("debtor_customers"),
       subtitle: tr("debtors_count", args: ["$count"]),
       actions: [
+        _filterToggle(),
+        AppButton(
+          label: tr("new_debtor"),
+          icon: Icons.person_add_alt_1_rounded,
+          onPressed: _createDebtor,
+        ),
         BlocConsumer<ExportDebtorsBloc, ExportDebtorsState>(
           listener: (context, state) {
             state.whenOrNull(
@@ -180,6 +234,7 @@ class _DebtorsListScreenState extends State<DebtorsListScreen> {
           context,
           customerId: item.id,
           customerName: item.name,
+          phone: item.phone,
         );
 
     final deadline = _deadline(item.oldestUnPaidDeadline.toString());

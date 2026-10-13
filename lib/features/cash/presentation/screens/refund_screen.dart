@@ -221,7 +221,12 @@ class _RefundScreenState extends State<RefundScreen> {
           AppIconButton(
             icon: Icons.visibility_rounded,
             tooltip: tr("view_details"),
-            onPressed: () => showRefundDetailPanel(context, t),
+            onPressed: () async {
+              final edited = await showRefundDetailPanel(context, t);
+              if (edited == true && mounted) {
+                loadRefundData(cursor: cursors[currentPage - 1] ?? "");
+              }
+            },
           ),
         ),
       ],
