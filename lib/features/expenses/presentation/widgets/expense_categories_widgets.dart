@@ -15,72 +15,93 @@ void _snack(BuildContext context, String message) =>
 Future<String?> showExpenseCategoryTitleDialog(
   BuildContext context, {
   String? initial,
-}) async {
-  final ctrl = TextEditingController(text: initial ?? "");
-  final formKey = GlobalKey<FormState>();
-  final title = await showDialog<String>(
+}) {
+  return showDialog<String>(
     context: context,
-    builder: (dialogContext) {
-      void submit() {
-        if (!formKey.currentState!.validate()) return;
-        Navigator.pop(dialogContext, ctrl.text.trim());
-      }
+    builder: (_) => _TitleDialog(initial: initial),
+  );
+}
 
-      return Dialog(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.xl),
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    initial == null
-                        ? tr("new_expense_category")
-                        : tr("edit"),
-                    style: AppText.h2,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  AppTextField(
-                    label: tr("expense_category_name"),
-                    required: true,
-                    hint: tr("expense_category_hint"),
-                    controller: ctrl,
-                    prefix: const Icon(Icons.folder_rounded, size: 18),
-                    onSubmitted: (_) => submit(),
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? tr("field_required")
-                        : null,
-                  ),
-                  const SizedBox(height: AppSpacing.xl),
-                  Wrap(
-                    alignment: WrapAlignment.end,
-                    spacing: AppSpacing.sm,
-                    children: [
-                      AppButton.secondary(
-                        label: tr("cancel"),
-                        onPressed: () => Navigator.pop(dialogContext),
-                      ),
-                      AppButton(
-                        label: tr("save"),
-                        icon: Icons.check_circle_rounded,
-                        onPressed: submit,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+/// Controller oyna bilan birga yo'q qilinadi — yopilish animatsiyasi
+/// davomida maydon hali ishlatilayotgan bo'ladi
+class _TitleDialog extends StatefulWidget {
+  final String? initial;
+
+  const _TitleDialog({this.initial});
+
+  @override
+  State<_TitleDialog> createState() => _TitleDialogState();
+}
+
+class _TitleDialogState extends State<_TitleDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final _ctrl = TextEditingController(text: widget.initial ?? "");
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (!_formKey.currentState!.validate()) return;
+    Navigator.pop(context, _ctrl.text.trim());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 380),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  widget.initial == null
+                      ? tr("new_expense_category")
+                      : tr("edit"),
+                  style: AppText.h2,
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                AppTextField(
+                  label: tr("expense_category_name"),
+                  required: true,
+                  hint: tr("expense_category_hint"),
+                  controller: _ctrl,
+                  prefix: const Icon(Icons.folder_rounded, size: 18),
+                  onSubmitted: (_) => _submit(),
+                  validator: (v) => (v == null || v.trim().isEmpty)
+                      ? tr("field_required")
+                      : null,
+                ),
+                const SizedBox(height: AppSpacing.xl),
+                Wrap(
+                  alignment: WrapAlignment.end,
+                  spacing: AppSpacing.sm,
+                  children: [
+                    AppButton.secondary(
+                      label: tr("cancel"),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                    AppButton(
+                      label: tr("save"),
+                      icon: Icons.check_circle_rounded,
+                      onPressed: _submit,
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
         ),
-      );
-    },
-  );
-  ctrl.dispose();
-  return title;
+      ),
+    );
+  }
 }
 
 /// Yangi kategoriya yaratadi; muvaffaqiyatli bo'lsa uni qaytaradi
