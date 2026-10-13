@@ -49,6 +49,8 @@ class ProductRow extends StatefulWidget {
 class _ProductRowState extends State<ProductRow> {
   final TextEditingController _controller = TextEditingController();
   final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _totalController = TextEditingController();
+  bool _editingTotal = false;
   double subTotal = 0;
   bool get isPieceUnit => widget.unit.toLowerCase() == 'dona';
 
@@ -91,6 +93,7 @@ class _ProductRowState extends State<ProductRow> {
   void dispose() {
     _controller.dispose();
     _priceController.dispose();
+    _totalController.dispose();
     super.dispose();
   }
 
@@ -124,6 +127,75 @@ class _ProductRowState extends State<ProductRow> {
       subTotal = double.parse(widget.price) * qty;
       widget.updateQuantity(widget.id, qty);
     });
+  }
+
+  bool get _canEditPrice => widget.cash && (globalUser?.canEditPrice ?? true);
+
+  void _startTotalEdit() {
+    _totalController.text =
+        formatCurrency(subTotal.toStringAsFixed(0), withCurrency: false);
+    _totalController.selection =
+        TextSelection(baseOffset: 0, extentOffset: _totalController.text.length);
+    setState(() => _editingTotal = true);
+  }
+
+  /// Jami summa kiritilsa narx = jami / miqdor (tiyingacha yaxlitlanadi)
+  void _commitTotal() {
+    if (!_editingTotal) return;
+    final total = double.tryParse(_totalController.text.replaceAll(' ', ''));
+    final qty = double.tryParse(_controller.text) ?? 0;
+    if (total != null && total > 0 && qty > 0) {
+      final price = (total / qty * 100).round() / 100;
+      final priceText = price == price.roundToDouble()
+          ? price.toInt().toString()
+          : price.toStringAsFixed(2);
+      context.read<CartBloc>().add(UpdateItemPriceEvent(widget.id, priceText));
+      _priceController.text =
+          formatCurrency(price.toStringAsFixed(0), withCurrency: false);
+      subTotal = price * qty;
+    }
+    setState(() => _editingTotal = false);
+  }
+
+  Widget _totalCell() {
+    final text = Text(
+      formatCurrency(subTotal.toStringAsFixed(0)),
+      textAlign: TextAlign.right,
+      style: AppText.bodyStrong,
+    );
+    if (!_canEditPrice) return text;
+    if (!_editingTotal) {
+      return Tooltip(
+        message: tr("double_tap_to_edit_total"),
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onDoubleTap: _startTotalEdit,
+          child: text,
+        ),
+      );
+    }
+    return SizedBox(
+      height: AppSizes.controlHeightSm,
+      child: TextField(
+        controller: _totalController,
+        autofocus: true,
+        keyboardType: TextInputType.number,
+        inputFormatters: <TextInputFormatter>[
+          FilteringTextInputFormatter.digitsOnly,
+          ThousandsSeparatorFormatter(),
+        ],
+        textAlign: TextAlign.right,
+        style: AppText.bodyStrong,
+        decoration: const InputDecoration(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: 8,
+          ),
+        ),
+        onSubmitted: (_) => _commitTotal(),
+        onTapOutside: (_) => _commitTotal(),
+      ),
+    );
   }
 
   void _commitPrice(String value) {
@@ -245,11 +317,7 @@ class _ProductRowState extends State<ProductRow> {
       const SizedBox(width: AppSpacing.sm),
       Expanded(
         flex: 2,
-        child: Text(
-          formatCurrency(subTotal.toStringAsFixed(0)),
-          textAlign: TextAlign.right,
-          style: AppText.bodyStrong,
-        ),
+        child: _totalCell(),
       ),
       const SizedBox(width: AppSpacing.xs),
       AppIconButton(

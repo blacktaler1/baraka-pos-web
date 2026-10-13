@@ -529,5 +529,6 @@
   "payment_type": "To'lov turi",
   "sale_needs_item": "Sotuvda kamida bitta tovar qolishi kerak. Butunlay qaytarish uchun vozvrat qiling.",
   "edit_refund": "Vozvratni tahrirlash",
-  "edit_refund_hint": "Qaytarilgan miqdorni kamaytirsangiz, tovar yana sotilgan hisoblanadi. 0 — vozvrat bekor qilinadi."
+  "edit_refund_hint": "Qaytarilgan miqdorni kamaytirsangiz, tovar yana sotilgan hisoblanadi. 0 — vozvrat bekor qilinadi.",
+  "double_tap_to_edit_total": "Jami summani o'zgartirish uchun ikki marta bosing"
 }
