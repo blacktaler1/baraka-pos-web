@@ -16,6 +16,9 @@ final class ProductModel extends Model {
   final String unit;
   final int packSize;
   final String meterPrice;
+
+  /// '' — belgilanmagan, paid — to'lab olingan, debt — qarzga olingan
+  final String purchaseType;
   final ImageCollection imageCollection;
   final String qrCode;
   final int warehouseId;
@@ -33,6 +36,7 @@ final class ProductModel extends Model {
     required this.category,
     required this.packSize,
     this.meterPrice = "",
+    this.purchaseType = "",
     required this.unit,
     required this.imageCollection,
     required this.qrCode,

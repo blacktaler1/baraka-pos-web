@@ -16,6 +16,7 @@ final class UpdateProductRequest extends RemoteRequest<UpdateProductPayload> {
   final int firmaId;
   final int? wholesalePrice;
   final int? meterPrice;
+  final String? purchase;
   final double? minStock;
 
   UpdateProductRequest.fromPayload(super.payload)
@@ -31,6 +32,7 @@ final class UpdateProductRequest extends RemoteRequest<UpdateProductPayload> {
         firmaId = payload.firmaId,
         wholesalePrice = payload.wholesalePrice,
         meterPrice = payload.meterPrice,
+        purchase = payload.purchase,
         minStock = payload.minStock,
         id = payload.id,
         super.fromPayload();
@@ -55,6 +57,7 @@ final class UpdateProductRequest extends RemoteRequest<UpdateProductPayload> {
       ...map,
       "wholesale_price": wholesalePrice,
       if (meterPrice != null) "meter_price": meterPrice,
+      if (purchase != null) "purchase": purchase,
       "min_stock": minStock,
     };
   }

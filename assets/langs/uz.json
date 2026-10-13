@@ -530,5 +530,15 @@
   "sale_needs_item": "Sotuvda kamida bitta tovar qolishi kerak. Butunlay qaytarish uchun vozvrat qiling.",
   "edit_refund": "Vozvratni tahrirlash",
   "edit_refund_hint": "Qaytarilgan miqdorni kamaytirsangiz, tovar yana sotilgan hisoblanadi. 0 — vozvrat bekor qilinadi.",
-  "double_tap_to_edit_total": "Jami summani o'zgartirish uchun ikki marta bosing"
+  "double_tap_to_edit_total": "Jami summani o'zgartirish uchun ikki marta bosing",
+  "purchase_to_firma": "Firmadan xarid",
+  "purchase_not_set": "Belgilanmagan",
+  "purchase_paid": "To'lab oldim",
+  "purchase_debt": "Qarzga oldim",
+  "purchase_hint": "Ixtiyoriy: tanlansa summa firmaga yoziladi",
+  "purchase_paid_hint": "{} firmaning to'lovlar tarixiga qo'shiladi",
+  "purchase_debt_hint": "{} firmaning qarzlariga qo'shiladi",
+  "purchase_needs_firma": "Xaridni yozish uchun firmani tanlang",
+  "return_to_firma": "Firmaga vozvrat qilindi",
+  "return_to_firma_hint": "Qaytarilgan tovar summasi firmadagi qarz yoki to'lovdan ayiriladi"
 }

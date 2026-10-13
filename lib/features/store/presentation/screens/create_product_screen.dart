@@ -1,3 +1,4 @@
+import '../widgets/purchase_selector.dart';
 import 'package:baraka_pos/features/firma/presentation/screens/create_firma_screen.dart';
 import 'package:baraka_pos/features/global/presentation/widgets/create_category_widget.dart';
 import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
@@ -76,6 +77,7 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
   String? _unit;
   int? _categoryId;
   late int? _firmaId = widget.firmaId;
+  String _purchase = '';
   bool _showSuggestions = false;
 
   static final _moneyFormatters = <TextInputFormatter>[
@@ -152,6 +154,7 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
             minStock: _minStock.text.trim().isEmpty
                 ? null
                 : parseAmount(_minStock.text),
+            purchase: _purchase.isEmpty ? null : _purchase,
             meterPrice: _unit == "roll" && _meterPrice.text.trim().isNotEmpty
                 ? parseAmountInt(_meterPrice.text)
                 : null,
@@ -380,6 +383,14 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
                         _categoryDropdown(),
                         _firmaDropdown(),
                       ]),
+                      PurchaseTypeSelector(
+                        value: _purchase,
+                        hasFirma: _firmaId != null,
+                        listenable: Listenable.merge([_cost, _stock]),
+                        amount: () =>
+                            parseAmount(_cost.text) * parseAmount(_stock.text),
+                        onChanged: (v) => setState(() => _purchase = v),
+                      ),
                     ],
                   ),
                 ],
@@ -619,8 +630,11 @@ class _CreateProductPanelState extends State<CreateProductPanel> {
         final safeValue = firms.any((f) => f.id == _firmaId) ? _firmaId : null;
         return _withCreateButton(
             AppDropdown<int>(
-              label: tr("company"),
-              hint: tr("select"),
+          label: tr("company"),
+          // Yangi mahsulotda firma majburiy
+          required: true,
+          validator: (v) => v == null ? tr("required") : null,
+          hint: tr("select"),
               value: safeValue,
               items: firms
                   .map((f) =>

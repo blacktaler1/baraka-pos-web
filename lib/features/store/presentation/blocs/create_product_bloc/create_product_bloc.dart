@@ -37,6 +37,7 @@ class CreateProductBloc extends Bloc<CreateProductEvent, CreateProductState> {
         firmaId: event.firmaId,
         wholesalePrice: event.wholesalePrice,
         meterPrice: event.meterPrice,
+        purchase: event.purchase,
         minStock: event.minStock,
       ),
     );

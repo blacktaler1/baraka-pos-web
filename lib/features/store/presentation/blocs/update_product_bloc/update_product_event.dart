@@ -21,6 +21,7 @@ final class UpdateProductEventStarted extends UpdateProductEvent {
   final int firmaId;
   final int? wholesalePrice;
   final int? meterPrice;
+  final String? purchase;
   final double? minStock;
 
   const UpdateProductEventStarted({
@@ -37,6 +38,7 @@ final class UpdateProductEventStarted extends UpdateProductEvent {
     required this.firmaId,
     required this.wholesalePrice,
     this.meterPrice,
+    this.purchase,
     required this.minStock,
   });
 
@@ -55,6 +57,7 @@ final class UpdateProductEventStarted extends UpdateProductEvent {
         "firmaId: $firmaId",
         "wholesale_price: $wholesalePrice",
         "meter_price: $meterPrice",
+        "purchase: $purchase",
         "min_stock: $minStock",
       ];
 }

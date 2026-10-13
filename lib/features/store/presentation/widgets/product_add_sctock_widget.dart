@@ -1,3 +1,4 @@
+import 'purchase_selector.dart';
 import 'package:baraka_pos/features/global/domain/domain.dart';
 import 'package:baraka_pos/features/store/presentation/blocs/stock_update_bloc/stock_update_bloc.dart';
 import 'package:baraka_pos/shared/aplication/utils/currency_utils.dart';
@@ -94,6 +95,10 @@ class ProductAddStockWidget extends StatefulWidget {
 class _ProductAddStockWidgetState extends State<ProductAddStockWidget> {
   final amountController = TextEditingController();
   bool isLoad = false;
+  String _purchase = '';
+  bool _returnToFirma = false;
+
+  bool get _hasFirma => widget.product.firma != null;
 
   bool get _isAdd => widget.title == "add";
 
@@ -111,6 +116,8 @@ class _ProductAddStockWidgetState extends State<ProductAddStockWidget> {
             action: widget.title,
             amount: parseAmount(amountController.text),
             pk: widget.product.id,
+            purchase: _isAdd ? _purchase : "",
+            returnToFirma: !_isAdd && _returnToFirma,
           ),
         );
   }
@@ -181,6 +188,26 @@ class _ProductAddStockWidgetState extends State<ProductAddStockWidget> {
               onChanged: (_) => setState(() {}),
               onSubmitted: (_) => _submit(),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            if (_isAdd)
+              PurchaseTypeSelector(
+                value: _purchase,
+                hasFirma: _hasFirma,
+                listenable: amountController,
+                amount: () =>
+                    parseAmount(amountController.text) *
+                    parseAmount(widget.product.cost),
+                onChanged: (v) => setState(() => _purchase = v),
+              )
+            else if (_hasFirma)
+              CheckboxListTile(
+                contentPadding: EdgeInsets.zero,
+                value: _returnToFirma,
+                onChanged: (v) => setState(() => _returnToFirma = v ?? false),
+                title: Text(tr("return_to_firma"), style: AppText.bodyMedium),
+                subtitle: Text(tr("return_to_firma_hint"), style: AppText.caption),
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
           ],
         ),
         actions: [

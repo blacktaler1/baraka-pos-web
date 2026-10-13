@@ -59,6 +59,7 @@ final class ProductDto extends JsonDto<ProductModel> {
       category: categegory.model(),
       packSize: packSize,
       meterPrice: meterPrice,
+      purchaseType: json.text("purchase_type"),
       unit: unit,
       qrCode: qrCode,
       imageCollection: images.collection(),

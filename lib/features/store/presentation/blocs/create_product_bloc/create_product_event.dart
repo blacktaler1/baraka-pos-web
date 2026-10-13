@@ -20,6 +20,7 @@ final class CreateProductStarted extends CreateProductEvent {
   final int firmaId;
   final int? wholesalePrice;
   final int? meterPrice;
+  final String? purchase;
   final double? minStock;
   const CreateProductStarted({
     required this.title,
@@ -34,6 +35,7 @@ final class CreateProductStarted extends CreateProductEvent {
     required this.firmaId,
     this.wholesalePrice,
     this.meterPrice,
+    this.purchase,
     this.minStock,
   });
 
@@ -50,6 +52,7 @@ final class CreateProductStarted extends CreateProductEvent {
         "firmaId: $firmaId",
         "wholesale_price: $wholesalePrice",
         "meter_price: $meterPrice",
+        "purchase: $purchase",
         "min_stock: $minStock",
       ];
 }

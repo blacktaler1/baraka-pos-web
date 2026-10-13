@@ -14,6 +14,7 @@ final class UpdateProductPayload extends Payload {
   final int firmaId;
   final int? wholesalePrice;
   final int? meterPrice;
+  final String? purchase;
   final double? minStock;
 
   const UpdateProductPayload({
@@ -30,6 +31,7 @@ final class UpdateProductPayload extends Payload {
     required this.firmaId,
     required this.wholesalePrice,
     this.meterPrice,
+    this.purchase,
     required this.minStock,
   });
 
@@ -47,6 +49,7 @@ final class UpdateProductPayload extends Payload {
         "firma_id: $firmaId",
         "wholesale_price: $wholesalePrice",
         "meter_price: $meterPrice",
+        "purchase: $purchase",
         "min_stock: $minStock",
       ];
 }

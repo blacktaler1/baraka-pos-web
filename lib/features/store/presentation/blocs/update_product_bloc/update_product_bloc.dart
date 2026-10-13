@@ -36,6 +36,7 @@ class UpdateProductBloc extends Bloc<UpdateProductEvent, UpdateProductState> {
         firmaId: event.firmaId,
         wholesalePrice: event.wholesalePrice,
         meterPrice: event.meterPrice,
+        purchase: event.purchase,
         minStock: event.minStock,
       ),
     );

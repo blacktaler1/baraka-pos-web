@@ -1,3 +1,4 @@
+import 'purchase_selector.dart';
 import 'package:baraka_pos/shared/aplication/utils/unit_utils.dart';
 import 'package:cross_file/cross_file.dart';
 
@@ -101,6 +102,7 @@ class _EditProductModalState extends State<EditProductModal> {
   late String? selectedUnit = widget.product.unit;
   late int? selectedCategoryId = widget.product.category.id;
   late int? selectedFirmaId = widget.product.firma?.id;
+  late String _purchase = widget.product.purchaseType;
 
   XFile? pickedImage;
   bool isChanged = false;
@@ -163,6 +165,7 @@ class _EditProductModalState extends State<EditProductModal> {
         selectedUnit != p.unit ||
         selectedCategoryId != p.category.id ||
         selectedFirmaId != p.firma?.id ||
+        _purchase != p.purchaseType ||
         _wholesaleValue != _originalWholesale ||
         _minStockValue != _originalMinStock ||
         pickedImage != null;
@@ -350,6 +353,17 @@ class _EditProductModalState extends State<EditProductModal> {
                       _categoryDropdown(),
                       _firmaDropdown(),
                     ]),
+                    PurchaseTypeSelector(
+                      value: _purchase,
+                      hasFirma: selectedFirmaId != null,
+                      listenable: Listenable.merge([costCtrl, stockCtrl]),
+                      amount: () =>
+                          parseAmount(costCtrl.text) * parseAmount(stockCtrl.text),
+                      onChanged: (v) {
+                        setState(() => _purchase = v);
+                        checkChanges();
+                      },
+                    ),
                   ],
                 ),
               ],
@@ -465,6 +479,7 @@ class _EditProductModalState extends State<EditProductModal> {
             wholesalePrice: _wholesaleValue,
             minStock: _minStockValue,
             meterPrice: selectedUnit == "roll" ? _meterPriceValue : null,
+            purchase: _purchase != p.purchaseType ? _purchase : null,
           ),
         );
   }

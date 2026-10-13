@@ -25,6 +25,8 @@ class StockUpdateBloc extends Bloc<StockUpdateEvent, StockUpdateState> {
     final result = await repository.updateStock(
       payload: StockUpdatePayload(
         action: event.action,
+        purchase: event.purchase,
+        returnToFirma: event.returnToFirma,
         amount: event.amount,
         pk: event.pk,
       ),
