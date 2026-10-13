@@ -166,7 +166,7 @@ class _CategoriesManager extends StatelessWidget {
                     final categories = data?.categories ?? const [];
                     if (data == null) return const AppLoading();
                     if (data.error != null) {
-                      return AppErrorState(
+                      return _LoadError(
                         message: data.error!,
                         onRetry: () =>
                             context.read<ExpenseCategoriesCubit>().load(),
@@ -242,6 +242,46 @@ class _CategoriesManager extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Qisqa xato xabari: uzun texnik matn o'rniga tushunarli izoh
+class _LoadError extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _LoadError({required this.message, required this.onRetry});
+
+  String get _text {
+    // Server hali yangilanmagan — kategoriyalar manzili yo'q
+    if (message.contains("404")) return tr("expense_categories_server_outdated");
+    if (message.length > 160 || message.contains("status code")) {
+      return tr("expense_categories_load_failed");
+    }
+    return message;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+      child: Column(
+        children: [
+          const AppSoftIcon(
+            icon: Icons.cloud_off_rounded,
+            color: AppColors.danger,
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Text(_text, textAlign: TextAlign.center, style: AppText.small),
+          const SizedBox(height: AppSpacing.md),
+          AppButton.secondary(
+            label: tr("retry"),
+            icon: Icons.refresh_rounded,
+            onPressed: onRetry,
+          ),
+        ],
       ),
     );
   }

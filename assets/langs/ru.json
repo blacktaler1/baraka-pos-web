@@ -507,5 +507,7 @@
   "no_expense_categories": "Категорий пока нет",
   "no_category": "Без категории",
   "uncategorized": "Без категории",
-  "all": "Все"
+  "all": "Все",
+  "expense_categories_server_outdated": "Сервер ещё не обновлён: категории заработают после обновления сервера.",
+  "expense_categories_load_failed": "Не удалось загрузить категории. Проверьте интернет и попробуйте снова."
 }

@@ -510,5 +510,7 @@
   "no_expense_categories": "Hali kategoriya yo'q",
   "no_category": "Kategoriyasiz",
   "uncategorized": "Kategoriyasiz",
-  "all": "Hammasi"
+  "all": "Hammasi",
+  "expense_categories_server_outdated": "Server hali yangilanmagan: kategoriyalar serverga chiqarilgandan keyin ishlaydi.",
+  "expense_categories_load_failed": "Kategoriyalarni yuklab bo'lmadi. Internetni tekshirib, qayta urinib ko'ring."
 }
