@@ -11,14 +11,19 @@ final class CreateExpenseStarted extends CreateExpenseEvent {
   final String title;
   final int amount;
 
+  /// Yaratishda: null — kategoriyasiz. Tahrirda: null — o'zgarmaydi, 0 — olib tashlash
+  final int? categoryId;
+
   const CreateExpenseStarted({
     required this.title,
     required this.amount,
+    this.categoryId,
   });
 
   @override
   List<Object> get props => [
         "title: $title",
         "amount: $amount",
+        "category: $categoryId",
       ];
 }

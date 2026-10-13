@@ -28,6 +28,7 @@ class GetExpensesBloc extends Bloc<GetExpensesEvent, GetExpensesState> {
       payload: GetExpensesPayload(
         cursor: event.cursor,
         pageSize: event.pageSize,
+        category: event.category,
       ),
     );
 

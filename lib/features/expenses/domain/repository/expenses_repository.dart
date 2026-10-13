@@ -1,10 +1,12 @@
 import '../../../../shared/aplication/exceptions/base_exception.dart';
 import '../../../../shared/aplication/utils/safed.dart';
 import '../../../global/domain/model/no_content_model.dart';
+import '../model/expense_category_model.dart';
 import '../model/expense_model.dart';
 import '../model/get_expenses_model.dart';
 import '../payload/create_expense_payload.dart';
 import '../payload/delete_expense_payload.dart';
+import '../payload/expense_category_payload.dart';
 import '../payload/get_expenses_payload.dart';
 import '../payload/update_expense_payload.dart';
 
@@ -23,5 +25,19 @@ abstract class ExpensesRepository {
 
   Future<Safed<BaseException, NoContentModel>> deleteExpense({
     required DeleteExpensePayload payload,
+  });
+
+  Future<Safed<BaseException, ExpenseCategoriesModel>> getExpenseCategories();
+
+  Future<Safed<BaseException, ExpenseCategoryModel>> createExpenseCategory({
+    required ExpenseCategoryPayload payload,
+  });
+
+  Future<Safed<BaseException, ExpenseCategoryModel>> updateExpenseCategory({
+    required ExpenseCategoryPayload payload,
+  });
+
+  Future<Safed<BaseException, NoContentModel>> deleteExpenseCategory({
+    required ExpenseCategoryPayload payload,
   });
 }

@@ -6,10 +6,12 @@ import '../../../../shared/aplication/types/json.dart';
 final class GetExpensesRequest extends RemoteRequest<GetExpensesPayload> {
   final String cursor;
   final String pageSize;
+  final String category;
 
   GetExpensesRequest.fromPayload(super.payload)
       : cursor = payload.cursor,
         pageSize = payload.pageSize,
+        category = payload.category,
         super.fromPayload();
 
   @override
@@ -22,5 +24,6 @@ final class GetExpensesRequest extends RemoteRequest<GetExpensesPayload> {
   Map<String, String> query() => {
         "cursor": cursor,
         "page_size": pageSize,
+        if (category.isNotEmpty) "category": category,
       };
 }

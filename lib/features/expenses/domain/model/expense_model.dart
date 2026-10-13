@@ -7,6 +7,8 @@ final class ExpenseModel extends Model {
   final String title;
   final String amount;
   final int warehouse;
+  final int? categoryId;
+  final String? categoryTitle;
 
   const ExpenseModel({
     required this.id,
@@ -15,6 +17,8 @@ final class ExpenseModel extends Model {
     required this.title,
     required this.amount,
     required this.warehouse,
+    this.categoryId,
+    this.categoryTitle,
   });
 
   @override
@@ -23,6 +27,7 @@ final class ExpenseModel extends Model {
         "created: $created",
         "title: $title",
         "amount: $amount",
-        "warehouse: $warehouse"
+        "warehouse: $warehouse",
+        "category: $categoryId",
       ];
 }

@@ -57,4 +57,49 @@ final class ExpensesRepositoryImpl extends ExpensesRepository {
       failure: (e) => e,
     );
   }
+
+  @override
+  Future<Safed<BaseException, ExpenseCategoriesModel>>
+      getExpenseCategories() async {
+    final result = await remote.getExpenseCategories(
+        request: ExpenseCategoryRequest.fromPayload(
+            const ExpenseCategoryPayload()));
+    return result.map(
+      success: (dto) => dto.model(),
+      failure: (e) => e,
+    );
+  }
+
+  @override
+  Future<Safed<BaseException, ExpenseCategoryModel>> createExpenseCategory(
+      {required ExpenseCategoryPayload payload}) async {
+    final result = await remote.createExpenseCategory(
+        request: ExpenseCategoryRequest.fromPayload(payload));
+    return result.map(
+      success: (dto) => dto.model(),
+      failure: (e) => e,
+    );
+  }
+
+  @override
+  Future<Safed<BaseException, ExpenseCategoryModel>> updateExpenseCategory(
+      {required ExpenseCategoryPayload payload}) async {
+    final result = await remote.updateExpenseCategory(
+        request: ExpenseCategoryRequest.fromPayload(payload));
+    return result.map(
+      success: (dto) => dto.model(),
+      failure: (e) => e,
+    );
+  }
+
+  @override
+  Future<Safed<BaseException, NoContentModel>> deleteExpenseCategory(
+      {required ExpenseCategoryPayload payload}) async {
+    final result = await remote.deleteExpenseCategory(
+        request: ExpenseCategoryRequest.fromPayload(payload));
+    return result.map(
+      success: (_) => NoContentModel(),
+      failure: (e) => e,
+    );
+  }
 }

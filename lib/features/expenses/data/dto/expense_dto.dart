@@ -13,6 +13,8 @@ final class ExpenseDto extends JsonDto<ExpenseModel> {
   String get title => json.text("title");
   String get amount => json.text("amount", fallback: "0");
   int get warehouse => json.integer("warehouse");
+  int? get categoryId => json["category"] == null ? null : json.integer("category");
+  String? get categoryTitle => json["category_title"]?.toString();
 
   @override
   ExpenseModel model() {
@@ -23,6 +25,8 @@ final class ExpenseDto extends JsonDto<ExpenseModel> {
       title: title,
       amount: amount,
       warehouse: warehouse,
+      categoryId: categoryId,
+      categoryTitle: categoryTitle,
     );
   }
 }

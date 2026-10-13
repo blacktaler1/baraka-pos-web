@@ -5,7 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../shared/aplication/utils/currency_utils.dart';
 import '../../../cash/presentation/widgets/pagination_widget.dart';
+import '../../domain/model/expense_category_model.dart';
 import '../../domain/model/expense_model.dart';
+import '../blocs/expense_categories_cubit/expense_categories_cubit.dart';
+import '../widgets/expense_categories_widgets.dart';
 import '../../domain/model/get_expenses_model.dart';
 import '../blocs/get_expenses_bloc/get_expenses_bloc.dart';
 import '../widgets/create_expense_sheet.dart';
@@ -24,9 +27,24 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
   int totalItems = 0;
   List<String?> cursors = [null];
 
+  // "" — hammasi, "none" — kategoriyasiz, aks holda kategoriya id
+  String _category = "";
+
   @override
   void initState() {
     super.initState();
+    loadExpensesData(cursor: "");
+    context.read<ExpenseCategoriesCubit>().load();
+  }
+
+  void _selectCategory(String value) {
+    if (value == _category) return;
+    setState(() {
+      _category = value;
+      currentPage = 1;
+      cursors = [null];
+      totalItems = 0;
+    });
     loadExpensesData(cursor: "");
   }
 
@@ -35,6 +53,7 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
           GetExpensesStarted(
             cursor: cursor,
             pageSize: rowsPerPage.toString(),
+            category: _category,
           ),
         );
   }
@@ -56,7 +75,11 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     loadExpensesData(cursor: "");
   }
 
-  void _reload() => loadExpensesData(cursor: cursors[currentPage - 1] ?? "");
+  void _reload() {
+    loadExpensesData(cursor: cursors[currentPage - 1] ?? "");
+    // Kategoriyalar bo'yicha summalar ham yangilanadi
+    context.read<ExpenseCategoriesCubit>().load();
+  }
 
   Future<void> _openPanel({ExpenseModel? expense}) async {
     final result = await showExpensePanel(context, expense: expense);
@@ -201,6 +224,8 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
             ),
           ),
         SizedBox(height: mobile ? AppSpacing.sm : AppSpacing.lg),
+        _categoryBar(),
+        const SizedBox(height: AppSpacing.md),
         Expanded(
           child: model.data.models.isEmpty
               ? AppCard(
@@ -212,11 +237,12 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               : AppDataTable(
                   columns: [
                     tr("title"),
+                    tr("category"),
                     tr("date"),
                     tr("amount"),
                     "",
                   ],
-                  numericColumns: const {2},
+                  numericColumns: const {3},
                   rows: model.data.models.map(_row).toList(),
                 ),
         ),
@@ -224,8 +250,81 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
     );
   }
 
+  Widget _categoryBar() {
+    return BlocBuilder<ExpenseCategoriesCubit, ExpenseCategoriesModel?>(
+      builder: (context, data) {
+        final categories = data?.categories ?? const <ExpenseCategoryModel>[];
+        // Tanlangan kategoriya o'chirilgan bo'lsa — hammasiga qaytamiz
+        if (data != null &&
+            _category.isNotEmpty &&
+            _category != "none" &&
+            !categories.any((c) => "${c.id}" == _category)) {
+          WidgetsBinding.instance
+              .addPostFrameCallback((_) => _selectCategory(""));
+        }
+        return Row(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _categoryChip("", tr("all"), null),
+                    for (final c in categories)
+                      _categoryChip("${c.id}", c.title, c.totalAmount),
+                    if ((data?.uncategorizedCount ?? 0) > 0 &&
+                        categories.isNotEmpty)
+                      _categoryChip(
+                        "none",
+                        tr("uncategorized"),
+                        data!.uncategorizedAmount,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            AppIconButton(
+              icon: Icons.folder_copy_rounded,
+              tooltip: tr("expense_categories"),
+              color: AppColors.primary,
+              onPressed: () => showExpenseCategoriesManager(context),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _categoryChip(String value, String label, num? amount) {
+    final selected = _category == value;
+    return Padding(
+      padding: const EdgeInsets.only(right: AppSpacing.xs),
+      child: ChoiceChip(
+        selected: selected,
+        showCheckmark: false,
+        label: Text(
+          amount == null
+              ? label
+              : "$label · ${formatCurrency(amount.toString())}",
+        ),
+        labelStyle: AppText.small.copyWith(
+          color: selected ? Colors.white : AppColors.ink,
+          fontWeight: FontWeight.w600,
+        ),
+        selectedColor: AppColors.primary,
+        backgroundColor: AppColors.surface,
+        side: BorderSide(
+          color: selected ? AppColors.primary : AppColors.border,
+        ),
+        onSelected: (_) => _selectCategory(value),
+      ),
+    );
+  }
+
   DataRow _row(ExpenseModel expense) {
-    final (icon, color) = expenseIconFor(expense.title);
+    final (icon, color) =
+        expenseIconFor("${expense.categoryTitle ?? ""} ${expense.title}");
     final created = DateTime.tryParse(expense.created)?.toLocal();
     return DataRow(
       cells: [
@@ -246,6 +345,15 @@ class _ExpensesScreenState extends State<ExpensesScreen> {
               ),
             ],
           ),
+        ),
+        DataCell(
+          expense.categoryTitle == null
+              ? Text("—", style: AppText.small)
+              : AppBadge(
+                  expense.categoryTitle!,
+                  tone: AppTone.primary,
+                  icon: Icons.folder_rounded,
+                ),
         ),
         DataCell(
           Row(

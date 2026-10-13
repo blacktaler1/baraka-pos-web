@@ -498,5 +498,14 @@
   "amount_in_usd": "Сумма в долларах",
   "in_som": "В сумах (округлено)",
   "apply": "Применить",
-  "not_set": "Не указан"
+  "not_set": "Не указан",
+  "expense_categories": "Категории расходов",
+  "new_expense_category": "Новая категория",
+  "expense_category_name": "Название категории",
+  "expense_category_hint": "Например: Аренда, Зарплата, Коммунальные",
+  "expense_category_delete_warning": "Расходы не удалятся, останутся без категории.",
+  "no_expense_categories": "Категорий пока нет",
+  "no_category": "Без категории",
+  "uncategorized": "Без категории",
+  "all": "Все"
 }

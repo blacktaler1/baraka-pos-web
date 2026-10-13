@@ -501,5 +501,14 @@
   "amount_in_usd": "Dollarda summa",
   "in_som": "So'mda (yaxlitlangan)",
   "apply": "Qo'llash",
-  "not_set": "Kiritilmagan"
+  "not_set": "Kiritilmagan",
+  "expense_categories": "Xarajat kategoriyalari",
+  "new_expense_category": "Yangi kategoriya",
+  "expense_category_name": "Kategoriya nomi",
+  "expense_category_hint": "Masalan: Ijara, Maosh, Kommunal",
+  "expense_category_delete_warning": "Xarajatlar o'chmaydi, kategoriyasiz qoladi.",
+  "no_expense_categories": "Hali kategoriya yo'q",
+  "no_category": "Kategoriyasiz",
+  "uncategorized": "Kategoriyasiz",
+  "all": "Hammasi"
 }

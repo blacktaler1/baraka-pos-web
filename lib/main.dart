@@ -244,6 +244,9 @@ void main() async {
             create: (context) => sl<GetExpensesBloc>(),
           ),
           BlocProvider(
+            create: (context) => sl<ExpenseCategoriesCubit>(),
+          ),
+          BlocProvider(
             create: (context) => sl<CreateExpenseBloc>(),
           ),
           BlocProvider(

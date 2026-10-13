@@ -29,6 +29,7 @@ class CreateExpenseBloc extends Bloc<CreateExpenseEvent, CreateExpenseState> {
       payload: CreateExpensePayload(
         title: event.title,
         amount: event.amount,
+        categoryId: event.categoryId,
       ),
     );
 

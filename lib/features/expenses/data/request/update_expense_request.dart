@@ -6,17 +6,21 @@ final class UpdateExpenseRequest extends RemoteRequest<UpdateExpensePayload> {
   final int id;
   final String title;
   final int amount;
+  final int? categoryId;
 
   UpdateExpenseRequest.fromPayload(super.payload)
       : id = payload.id,
         title = payload.title,
         amount = payload.amount,
+        categoryId = payload.categoryId,
         super.fromPayload();
 
   @override
   Json data() => {
         if (title.isNotEmpty) "title": title,
         if (amount != 0) "amount": amount,
+        if (categoryId != null)
+          "category": categoryId == 0 ? null : categoryId,
       };
 
   @override

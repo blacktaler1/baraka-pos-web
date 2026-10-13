@@ -546,6 +546,11 @@ Future<void> initDependencies() async {
       repository: sl(),
     ),
   );
+  sl.registerLazySingleton<ExpenseCategoriesCubit>(
+    () => ExpenseCategoriesCubit(
+      repository: sl(),
+    ),
+  );
   sl.registerLazySingleton<DeleteExpenseBloc>(
     () => DeleteExpenseBloc(
       repository: sl(),

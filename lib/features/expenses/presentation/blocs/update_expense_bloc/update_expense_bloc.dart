@@ -26,6 +26,7 @@ class UpdateExpenseBloc extends Bloc<UpdateExpenseEvent, UpdateExpenseState> {
         id: event.id,
         title: event.title,
         amount: event.amount,
+        categoryId: event.categoryId,
       ),
     );
 

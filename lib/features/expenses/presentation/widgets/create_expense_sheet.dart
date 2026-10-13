@@ -6,7 +6,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../cash/cash.dart';
+import '../../domain/model/expense_category_model.dart';
 import '../../domain/model/expense_model.dart';
+import '../blocs/expense_categories_cubit/expense_categories_cubit.dart';
+import 'expense_categories_widgets.dart';
 import '../blocs/create_expense_bloc/create_expense_bloc.dart';
 import '../blocs/update_expense_bloc/update_expense_bloc.dart';
 
@@ -34,7 +37,76 @@ class _ExpenseFormPanelState extends State<ExpenseFormPanel> {
     text: widget.expense?.amount.toString().split('.').first ?? '',
   );
 
+  // 0 — kategoriyasiz
+  late int _categoryId = widget.expense?.categoryId ?? 0;
+
   bool get _isEdit => widget.expense != null;
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<ExpenseCategoriesCubit>().loadIfNeeded();
+  }
+
+  Future<void> _createCategory() async {
+    final created = await createExpenseCategory(context);
+    if (created == null || !mounted) return;
+    setState(() => _categoryId = created.id);
+  }
+
+  Widget _categoryField() {
+    return BlocBuilder<ExpenseCategoriesCubit, ExpenseCategoriesModel?>(
+      builder: (context, data) {
+        final categories = data?.categories ?? const <ExpenseCategoryModel>[];
+        // Yangi kategoriya ro'yxat yangilanguncha "kategoriyasiz" ko'rinadi
+        final safeValue =
+            categories.any((c) => c.id == _categoryId) ? _categoryId : 0;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: AppDropdown<int>(
+                label: tr("category"),
+                value: safeValue,
+                items: [
+                  DropdownMenuItem(
+                    value: 0,
+                    child: Text(tr("no_category")),
+                  ),
+                  for (final c in categories)
+                    DropdownMenuItem(
+                      value: c.id,
+                      child: Text(c.title, overflow: TextOverflow.ellipsis),
+                    ),
+                ],
+                onChanged: (v) => setState(() => _categoryId = v ?? 0),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+            Padding(
+              // Maydon sarlavhasi balandligiga tenglashtiramiz
+              padding: const EdgeInsets.only(top: 24),
+              child: Tooltip(
+                message: tr("new_expense_category"),
+                child: Material(
+                  color: AppColors.primarySoft,
+                  borderRadius: AppRadius.control,
+                  child: InkWell(
+                    borderRadius: AppRadius.control,
+                    onTap: _createCategory,
+                    child: const SizedBox.square(
+                      dimension: AppSizes.controlHeight,
+                      child: Icon(Icons.add_rounded, color: AppColors.primary),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   void dispose() {
@@ -54,7 +126,11 @@ class _ExpenseFormPanelState extends State<ExpenseFormPanel> {
     if (!_isEdit) {
       context
           .read<CreateExpenseBloc>()
-          .add(CreateExpenseStarted(title: title, amount: amount));
+          .add(CreateExpenseStarted(
+            title: title,
+            amount: amount,
+            categoryId: _categoryId == 0 ? null : _categoryId,
+          ));
       return;
     }
 
@@ -62,7 +138,11 @@ class _ExpenseFormPanelState extends State<ExpenseFormPanel> {
     final titleToUpdate = title == original.title ? "" : title;
     final amountToUpdate =
         amount == parseAmountInt(original.amount.split('.').first) ? 0 : amount;
-    if (titleToUpdate.isEmpty && amountToUpdate == 0) {
+    final categoryToUpdate =
+        _categoryId == (original.categoryId ?? 0) ? null : _categoryId;
+    if (titleToUpdate.isEmpty &&
+        amountToUpdate == 0 &&
+        categoryToUpdate == null) {
       Navigator.pop(context);
       return;
     }
@@ -71,6 +151,7 @@ class _ExpenseFormPanelState extends State<ExpenseFormPanel> {
             id: original.id,
             title: titleToUpdate,
             amount: amountToUpdate,
+            categoryId: categoryToUpdate,
           ),
         );
   }
@@ -122,6 +203,8 @@ class _ExpenseFormPanelState extends State<ExpenseFormPanel> {
                     ? tr("field_required")
                     : null,
               ),
+              const AppFormGap(),
+              _categoryField(),
               const AppFormGap(),
               AppTextField(
                 label: tr("amount"),
