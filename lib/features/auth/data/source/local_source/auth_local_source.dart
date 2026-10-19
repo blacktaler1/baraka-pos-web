@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:baraka_pos/features/auth/auth.dart';
 import 'package:baraka_pos/shared/aplication/types/json.dart';
 import 'package:drift/drift.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../../shared/data/sources/local_sources.dart';
 
@@ -10,6 +11,18 @@ class AuthLocalSource {
   final PosLocalDatabase db;
 
   AuthLocalSource(this.db);
+
+  /// Tokenlar shared_preferences'da ham saqlanadi: webda drift (IndexedDB)
+  /// yozuvlarni kechiktirib saqlaydi, sahifa yangilansa yangi refresh token
+  /// yo'qolib, eskisi esa backendda blacklist bo'lib qolardi.
+  static const _accessKey = 'baraka_pos_access_token';
+  static const _refreshKey = 'baraka_pos_refresh_token';
+
+  Future<void> _saveTokens(String accessToken, String refreshToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_accessKey, accessToken);
+    await prefs.setString(_refreshKey, refreshToken);
+  }
 
   /// Login bo‘lganda chaqiriladi
   /// Backenddan kelgan user ma’lumotini saqlaydi va token qo‘yadi
@@ -62,6 +75,7 @@ class AuthLocalSource {
     await db
         .into(db.authTable)
         .insert(authCompanion, mode: InsertMode.insertOrReplace);
+    await _saveTokens(accessToken, refreshToken);
 
     globalUser = await getCurrentUser();
   }
@@ -72,7 +86,13 @@ class AuthLocalSource {
           ..orderBy(
               [(t) => OrderingTerm.desc(t.userId)])) // yoki boshqa id/timestamp
         .getSingleOrNull();
-    return query;
+    if (query == null) return null;
+
+    final prefs = await SharedPreferences.getInstance();
+    final access = prefs.getString(_accessKey);
+    final refresh = prefs.getString(_refreshKey);
+    if (access == null || refresh == null) return query;
+    return query.copyWith(accessToken: access, refreshToken: refresh);
   }
 
   Future<void> updateMarketInformation({
@@ -118,6 +138,9 @@ class AuthLocalSource {
   /// Logout – faqat tokenni o‘chirish
   Future<void> logout() async {
     await db.delete(db.authTable).go();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_accessKey);
+    await prefs.remove(_refreshKey);
   }
 
   /// Token mavjudligini tekshirish
@@ -131,13 +154,24 @@ class AuthLocalSource {
   }
 
   /// Backenddan kelgan yangi access va refresh tokenlarni yangilash
+  /// (`userJson` kelmasa faqat tokenlar yoziladi)
   Future<void> updateTokens({
     required String accessToken,
     required String refreshToken,
-    required Map<String, dynamic> userJson,
+    Map<String, dynamic>? userJson,
   }) async {
     final auth = await getCurrentAuth();
     if (auth == null) return;
+
+    // Avval tokenlar — ular eng muhimi
+    await _saveTokens(accessToken, refreshToken);
+    await (db.update(db.authTable)..where((t) => t.userId.equals(auth.userId)))
+        .write(AuthTableCompanion(
+      accessToken: Value(accessToken),
+      refreshToken: Value(refreshToken),
+    ));
+
+    if (userJson == null) return;
 
     final warehouse = userJson['warehouse'] ?? {};
     final permissions = userJson['permissions'] ?? {};
@@ -171,14 +205,5 @@ class AuthLocalSource {
 
     await (db.update(db.userTable)..where((t) => t.id.equals(auth.userId)))
         .write(userUpdateCompanion);
-
-    /// 🔹 AUTH TABLE UPDATE (tokenlar)
-    final authUpdateCompanion = AuthTableCompanion(
-      accessToken: Value(accessToken),
-      refreshToken: Value(refreshToken),
-    );
-
-    await (db.update(db.authTable)..where((t) => t.userId.equals(auth.userId)))
-        .write(authUpdateCompanion);
   }
 }

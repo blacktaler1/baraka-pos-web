@@ -1,9 +1,11 @@
+import 'dart:async';
+
 import 'package:baraka_pos/features/auth/auth.dart';
+import 'package:baraka_pos/shared/data/data.dart';
 import 'package:baraka_pos/shared/data/sources/local_sources.dart';
 import 'package:baraka_pos/shared/aplication/configs/app_colors.dart';
 import 'package:baraka_pos/shared/presentation/widgets/brand_logo.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 UserTableData? globalUser;
@@ -42,10 +44,9 @@ class _SplashScreenState extends State<SplashScreen> {
 
     globalUser = user;
 
-    /// 🔄 Refresh token
-    context.read<RefreshBloc>().add(
-          RefreshStarted(refresh: auth!.refreshToken),
-        );
+    /// 🔄 Refresh token — interceptor bilan bitta navbatda (parallel refresh
+    /// foydalanuvchini chiqarib yuborardi)
+    if (auth != null) unawaited(DioClient.refreshTokens());
 
     final from = widget.from;
     if (from != null && from.isNotEmpty && !from.startsWith('/splash')) {

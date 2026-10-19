@@ -12,7 +12,16 @@ class DioClient {
 
   DioClient({required this.talker});
 
-  Future<String?>? _pendingRefresh;
+  /// Bir vaqtda faqat bitta refresh so'rovi ketadi (splash va 401 interceptor
+  /// ham shu yerdan o'tadi). Backend refresh tokenni har safar almashtirib,
+  /// eskisini blacklist qiladi — ikkita parallel so'rov foydalanuvchini chiqarib yuboradi.
+  static Future<_RefreshResult>? _pendingRefresh;
+
+  /// Ilova ochilganda tokenni va foydalanuvchi ma'lumotini yangilash
+  static Future<void> refreshTokens() async {
+    final result = await _refreshAccessToken();
+    if (result is _RefreshRejected) await _forceLogout();
+  }
 
   Dio createDioClient() {
     final dio = Dio(
@@ -64,11 +73,18 @@ class DioClient {
             return handler.next(error);
           }
 
-          final newToken = await _refreshAccessToken();
+          final result = await _refreshAccessToken();
 
-          if (newToken == null) {
-            await _forceLogout();
-            return handler.next(error);
+          final String newToken;
+          switch (result) {
+            case _RefreshSuccess(:final access):
+              newToken = access;
+            case _RefreshRejected():
+              await _forceLogout();
+              return handler.next(error);
+            case _RefreshNetworkError():
+              // Internet yo'q / server javob bermadi — chiqarib yubormaymiz
+              return handler.next(error);
           }
 
           options.extra[_retriedFlag] = true;
@@ -97,64 +113,94 @@ class DioClient {
     return dio;
   }
 
-  Future<String?> _refreshAccessToken() {
+  static Future<_RefreshResult> _refreshAccessToken() {
     return _pendingRefresh ??=
         _performRefresh().whenComplete(() => _pendingRefresh = null);
   }
 
-  Future<String?> _performRefresh() async {
+  static Future<_RefreshResult> _performRefresh() async {
     final local = AuthLocalSource(PosLocalDatabase.instance);
     final auth = await local.getCurrentAuth();
     final refreshToken = auth?.refreshToken;
 
-    if (refreshToken == null || refreshToken.isEmpty) return null;
+    if (refreshToken == null || refreshToken.isEmpty) {
+      return const _RefreshRejected();
+    }
 
+    final client = Dio(
+      BaseOptions(
+        baseUrl: _apiBaseUrl,
+        contentType: "application/json",
+        connectTimeout: const Duration(seconds: 20),
+        receiveTimeout: const Duration(seconds: 20),
+      ),
+    );
+
+    final Response<Json> response;
     try {
-      final client = Dio(
-        BaseOptions(
-          baseUrl: _apiBaseUrl,
-          contentType: "application/json",
-          connectTimeout: const Duration(seconds: 20),
-          receiveTimeout: const Duration(seconds: 20),
-        ),
-      );
-
-      final response = await client.post<Json>(
+      response = await client.post<Json>(
         _refreshPath,
         data: {"refresh": refreshToken},
       );
-
-      final body = switch (response.data) {
-        {"data": Json data} => data,
-        Json data => data,
-        _ => null,
-      };
-
-      if (body == null) return null;
-
-      final access = body["access"];
-      if (access is! String || access.isEmpty) return null;
-
-      final user = body["user"];
-      if (user is Json) {
-        await local.updateTokens(
-          accessToken: access,
-          refreshToken:
-              body["refresh"] is String ? body["refresh"] : refreshToken,
-          userJson: user,
-        );
-        globalUser = await local.getCurrentUser();
+    } on DioException catch (e) {
+      final status = e.response?.statusCode;
+      if (status == 400 || status == 401) {
+        // Boshqa tab yoki so'rov tokenni bizdan oldin yangilagan bo'lishi mumkin
+        final latest = await local.getCurrentAuth();
+        if (latest != null && latest.refreshToken != refreshToken) {
+          return _RefreshSuccess(latest.accessToken);
+        }
+        return const _RefreshRejected();
       }
-
-      return access;
+      return const _RefreshNetworkError();
     } catch (_) {
-      return null;
+      return const _RefreshNetworkError();
     }
+
+    final body = switch (response.data) {
+      {"data": Json data} => data,
+      Json data => data,
+      _ => null,
+    };
+
+    final access = body?["access"];
+    if (body == null || access is! String || access.isEmpty) {
+      return const _RefreshNetworkError();
+    }
+
+    final user = body["user"];
+    await local.updateTokens(
+      accessToken: access,
+      refreshToken: body["refresh"] is String ? body["refresh"] : refreshToken,
+      userJson: user is Json ? user : null,
+    );
+    globalUser = await local.getCurrentUser();
+
+    return _RefreshSuccess(access);
   }
 
-  Future<void> _forceLogout() async {
+  static Future<void> _forceLogout() async {
     await AuthLocalSource(PosLocalDatabase.instance).logout();
     globalUser = null;
     rootNavigatorKey.currentContext?.go('/auth');
   }
+}
+
+sealed class _RefreshResult {
+  const _RefreshResult();
+}
+
+final class _RefreshSuccess extends _RefreshResult {
+  final String access;
+  const _RefreshSuccess(this.access);
+}
+
+/// Server refresh tokenni rad etdi (muddati o'tgan / blacklist) — qayta kirish kerak
+final class _RefreshRejected extends _RefreshResult {
+  const _RefreshRejected();
+}
+
+/// Internet yoki server xatosi — tokenlar joyida qoladi
+final class _RefreshNetworkError extends _RefreshResult {
+  const _RefreshNetworkError();
 }
