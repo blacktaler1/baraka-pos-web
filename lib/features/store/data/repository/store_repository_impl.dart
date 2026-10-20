@@ -133,4 +133,18 @@ final class StoreRepositoryImpl extends StoreRepository {
           failure: (BaseException e) => e,
         );
   }
+
+  @override
+  Future<Safed<BaseException, ProductHistoryModel>> getProductHistory({
+    required ProductHistoryPayload payload,
+  }) async {
+    return await remote
+        .getProductHistory(
+          request: ProductHistoryRequest.fromPayload(payload),
+        )
+        .map(
+          success: (dto) => dto.model(),
+          failure: (BaseException e) => e,
+        );
+  }
 }

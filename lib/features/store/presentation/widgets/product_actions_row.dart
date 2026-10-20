@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../blocs/delete_product_bloc/delete_product_bloc.dart';
 import 'edit_product_widget.dart';
 import 'print_barcode.dart';
+import 'product_history_panel.dart';
 import 'product_add_sctock_widget.dart';
 
 class ProductActionsMenu extends StatelessWidget {
@@ -96,6 +97,8 @@ class ProductActionsMenu extends StatelessWidget {
                 product: product, add: false, firmaId: firmaId);
           case 'print':
             showPrintBarcodePanel(context, product: product);
+          case 'history':
+            showProductHistoryPanel(context, product: product);
           case 'delete':
             _delete(context);
         }
@@ -109,6 +112,8 @@ class ProductActionsMenu extends StatelessWidget {
             color: AppColors.warning),
         _item('print', Icons.qr_code_scanner_rounded, tr("print_barcode"),
             color: AppColors.textSecondary),
+        _item('history', Icons.history_rounded, tr("stock_history"),
+            color: AppColors.info),
         const PopupMenuDivider(),
         _item('delete', Icons.delete_rounded, tr("delete"),
             color: AppColors.danger, textColor: AppColors.danger),

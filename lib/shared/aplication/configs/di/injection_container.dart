@@ -365,6 +365,13 @@ Future<void> initDependencies() async {
     ),
   );
 
+  // Har bir tarix oynasi o'z holatiga ega — factory
+  sl.registerFactory<ProductHistoryBloc>(
+    () => ProductHistoryBloc(
+      repository: sl(),
+    ),
+  );
+
   sl.registerLazySingleton<GetLastVersionBloc>(
     () => GetLastVersionBloc(
       repository: sl(),

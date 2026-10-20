@@ -6,3 +6,4 @@ export 'product_model_test.dart';
 export 'global_product_search_model.dart';
 export 'global_product_collection.dart';
 export 'global_product_item.dart';
+export 'product_history_model.dart';

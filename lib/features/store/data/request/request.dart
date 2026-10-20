@@ -7,3 +7,4 @@ export 'generated_code_request.dart';
 export 'stock_update_request.dart';
 export 'update_product_request.dart';
 export 'global_product_search_request.dart';
+export 'product_history_request.dart';

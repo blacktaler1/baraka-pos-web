@@ -38,4 +38,8 @@ abstract class StoreRepository {
   Future<Safed<BaseException, GlobalProductSearchModel>> globalSearchProduct({
     required GlobalProductPayload payload,
   });
+
+  Future<Safed<BaseException, ProductHistoryModel>> getProductHistory({
+    required ProductHistoryPayload payload,
+  });
 }

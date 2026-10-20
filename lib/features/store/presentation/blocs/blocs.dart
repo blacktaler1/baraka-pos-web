@@ -7,3 +7,4 @@ export 'generated_code_bloc/generated_code_bloc.dart';
 export 'export_products_bloc/export_products_bloc.dart';
 export 'import_products_bloc/import_products_bloc.dart';
 export 'global_product_search/global_product_search_bloc.dart';
+export 'product_history_bloc/product_history_bloc.dart';

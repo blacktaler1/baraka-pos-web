@@ -6,3 +6,4 @@ export 'product_dto.dart';
 export 'global_product_collection_dto.dart';
 export 'global_product_item_dto.dart';
 export 'global_product_search_dto.dart';
+export 'product_history_dto.dart';

@@ -112,4 +112,16 @@ final class StoreRemouteSource extends RemoteSource {
       failure: (BaseException e) => e,
     );
   }
+
+  Future<Safed<BaseException, ProductHistoryDto>> getProductHistory({
+    required ProductHistoryRequest request,
+  }) async {
+    return await apiGet(
+      path: "/${globalUser?.warehouseUuid}/product/${request.pk}/history/",
+      request: request,
+    ).map(
+      success: dataFactory(ProductHistoryDto.fromJson),
+      failure: (BaseException e) => e,
+    );
+  }
 }

@@ -40,7 +40,7 @@ class TransactionSearchFilter extends StatelessWidget {
         AppSearchField(
           controller: searchController,
           onChanged: onSearchChange,
-          hintText: tr('search_product'),
+          hintText: tr('search_check_or_product'),
         ),
       ],
       trailing: [
