@@ -6,6 +6,7 @@ import '../../domain/model/create_item_collection.dart';
 import '../../domain/model/create_item_model.dart';
 import '../../domain/model/transaction_model.dart';
 import '../blocs/refound_transaction_bloc/refound_transaction_bloc.dart';
+import 'stock_refresh.dart';
 import 'package:baraka_pos/shared/design/design.dart';
 import 'package:easy_localization/easy_localization.dart';
 
@@ -119,6 +120,7 @@ class _VozvratModalState extends State<VozvratModal> {
             ScaffoldMessenger.of(context)
                 .showSnackBar(SnackBar(content: Text(tr("refund_success"))));
             widget.loadData();
+            refreshStockLists(context);
             Navigator.pop(context);
           },
           failure: (error) => ScaffoldMessenger.of(context)

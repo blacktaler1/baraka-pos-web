@@ -14,6 +14,7 @@ import '../../../auth/presentation/screens/splash_screen.dart';
 import '../../domain/model/get_refund_model.dart';
 import '../../domain/model/transaction_item_model.dart';
 import '../../domain/model/transaction_model.dart';
+import 'stock_refresh.dart';
 import 'thousands_separator_formatter.dart';
 
 /// Sotuv va vozvratni faqat admin tahrirlay oladi (backend ham tekshiradi)
@@ -159,7 +160,10 @@ class _TransactionEditPanelState extends State<_TransactionEditPanel> {
     final result = await _editRequest(_txn.id, body);
     if (!mounted) return;
     result.when(
-      success: (_) => Navigator.pop(context, true),
+      success: (_) {
+        refreshStockLists(context);
+        Navigator.pop(context, true);
+      },
       failure: (error) {
         setState(() => _saving = false);
         _snack(error.message);
@@ -399,7 +403,10 @@ class _RefundEditDialogState extends State<_RefundEditDialog> {
     final result = await _editRequest(widget.refund.id, {"refunds": refunds});
     if (!mounted) return;
     result.when(
-      success: (_) => Navigator.pop(context, true),
+      success: (_) {
+        refreshStockLists(context);
+        Navigator.pop(context, true);
+      },
       failure: (error) {
         setState(() => _saving = false);
         ScaffoldMessenger.of(context)
