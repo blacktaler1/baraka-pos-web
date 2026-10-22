@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:baraka_pos/features/cash/cash.dart';
+import 'package:baraka_pos/features/cash/data/source/local_source/cart_local_source.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 CashProductModel product({
@@ -23,6 +24,21 @@ CashProductModel product({
       warehouse: 1,
       images: "",
     );
+
+/// Saqlangan savatni sekin yuklaydigan storage (diskdan o'qishni taqlid qiladi)
+class _SlowStorage extends CartLocalSource {
+  @override
+  Future<SavedCarts?> load() async {
+    await Future<void>.delayed(const Duration(milliseconds: 50));
+    return SavedCarts(
+      orders: [MockOrder(transactionId: 3, items: [])],
+      selectedOrderId: 3,
+    );
+  }
+
+  @override
+  Future<void> save(List<MockOrder> orders, int selectedOrderId) async {}
+}
 
 Future<CartState> settle(CartBloc bloc) async {
   await Future<void>.delayed(Duration.zero);
@@ -141,5 +157,25 @@ void main() {
     expect(restored.description, "note");
     expect(restored.discount, 500);
     expect(restored.items.models.single.price, 10000);
+  });
+
+  test('product added while saved carts are loading is not lost', () async {
+    // Kassa ochilganda: InitializeCart va birinchi tovar deyarli bir vaqtda
+    final bloc = CartBloc(storage: _SlowStorage())
+      ..add(InitializeCart())
+      ..add(AddProductToOrderEvent(product(id: 9)));
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+
+    expect(bloc.state.selectedOrderId, 3);
+    expect(bloc.state.selectedOrder!.items.map((e) => e.productId), [9]);
+    await bloc.close();
+  });
+
+  test('cart without InitializeCart still accepts products', () async {
+    final bloc = CartBloc()..add(AddProductToOrderEvent(product()));
+    await Future<void>.delayed(const Duration(milliseconds: 20));
+    // Buyurtma yo'q — qo'shilmaydi, lekin kutib qotib qolmaydi
+    expect(bloc.state.orders, isEmpty);
+    await bloc.close();
   });
 }

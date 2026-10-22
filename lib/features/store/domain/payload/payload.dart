@@ -7,3 +7,4 @@ export 'stock_update_payload.dart';
 export 'update_product_payload.dart';
 export 'global_product_search_payload.dart';
 export 'product_history_payload.dart';
+export 'history_entry_payload.dart';

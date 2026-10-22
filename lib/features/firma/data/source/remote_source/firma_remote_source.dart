@@ -1,4 +1,5 @@
 import 'package:baraka_pos/shared/aplication/types/json.dart';
+import '../../request/delete_loan_request.dart';
 import '../../request/update_loan_request.dart';
 import 'package:baraka_pos/features/auth/auth.dart';
 import 'package:baraka_pos/features/firma/data/data.dart';
@@ -112,6 +113,16 @@ final class FirmaRemoteSource extends RemoteSource {
   }) {
     return apiPatch(
       path: "/${globalUser?.warehouseUuid}/firma/$firmaId/loans/$loanId/",
+      request: request,
+    );
+  }
+
+  Future<Safed<BaseException, Json>> deleteLoan({
+    required DeleteLoanRequest request,
+  }) {
+    return apiDelete(
+      path:
+          "/${globalUser?.warehouseUuid}/firma/${request.firmaId}/loans/${request.loanId}/",
       request: request,
     );
   }

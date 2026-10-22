@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -13,6 +15,21 @@ part 'cart_state.dart';
 
 class CartBloc extends Bloc<CartEvent, CartState> {
   final CartLocalSource? storage;
+
+  /// Saqlangan savatlar xotiradan yuklanib bo'lgach tugaydi. Bloc event'lari
+  /// parallel ishlaydi: kassa ochilishi bilan qo'shilgan tovar yuklanish
+  /// tugashidan oldin kelib, bo'sh holatga tushib yo'qolardi.
+  final _ready = Completer<void>();
+
+  /// Faqat yuklash so'ralgan bo'lsa kutamiz — InitializeCart olmagan nusxa
+  /// (masalan, global singleton) tovar qo'shishda qotib qolmasligi uchun
+  bool _restoring = false;
+
+  @override
+  void onEvent(CartEvent event) {
+    if (event is InitializeCart) _restoring = true;
+    super.onEvent(event);
+  }
 
   CartBloc({this.storage}) : super(CartState(orders: [], selectedOrderId: 0)) {
     on<InitializeCart>(_onInitialize);
@@ -40,14 +57,22 @@ class CartBloc extends Bloc<CartEvent, CartState> {
 
   Future<void> _onInitialize(
       InitializeCart event, Emitter<CartState> emit) async {
+    try {
+      await _restore(emit);
+    } finally {
+      if (!_ready.isCompleted) _ready.complete();
+    }
+  }
+
+  Future<void> _restore(Emitter<CartState> emit) async {
     final saved = await storage?.load();
     if (saved != null) {
       emit(CartState(
         orders: saved.orders,
-        selectedOrderId:
-            saved.orders.any((o) => o.transactionId == saved.selectedOrderId)
-                ? saved.selectedOrderId
-                : saved.orders.first.transactionId,
+        selectedOrderId: saved.orders.any(
+                (o) => o.transactionId == saved.selectedOrderId)
+            ? saved.selectedOrderId
+            : saved.orders.first.transactionId,
         selectedPaymentMethod: 'cash',
       ));
       return;
@@ -118,7 +143,9 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     }
   }
 
-  void _onAddProduct(AddProductToOrderEvent event, Emitter<CartState> emit) {
+  Future<void> _onAddProduct(
+      AddProductToOrderEvent event, Emitter<CartState> emit) async {
+    if (_restoring && !_ready.isCompleted) await _ready.future;
     final currentOrder = state.selectedOrder;
     if (currentOrder == null) return;
 
@@ -148,7 +175,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       }
       newItems.add(item);
     } else {
-      if (newItems[itemIndex].quantity + 1 <= newItems[itemIndex].maxQuantity) {
+      if (newItems[itemIndex].quantity + 1 <=
+          newItems[itemIndex].maxQuantity) {
         newItems[itemIndex].quantity++;
       }
     }
@@ -243,7 +271,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     emit(state.copyWith(orders: updatedOrders));
   }
 
-  void _onToggleWholesale(ToggleWholesaleEvent event, Emitter<CartState> emit) {
+  void _onToggleWholesale(
+      ToggleWholesaleEvent event, Emitter<CartState> emit) {
     final currentOrder = state.selectedOrder;
     if (currentOrder == null) return;
 
@@ -259,7 +288,8 @@ class CartBloc extends Bloc<CartEvent, CartState> {
     );
   }
 
-  void _onToggleByPiece(ToggleItemByPieceEvent event, Emitter<CartState> emit) {
+  void _onToggleByPiece(
+      ToggleItemByPieceEvent event, Emitter<CartState> emit) {
     final currentOrder = state.selectedOrder;
     if (currentOrder == null) return;
 

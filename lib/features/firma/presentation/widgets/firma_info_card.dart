@@ -181,12 +181,8 @@ class FirmaInfoCard extends StatelessWidget {
 
   Widget _stats(FirmaModel model) {
     String money(num v) => formatCurrency(v.toString());
-    // API'da total_debt — qolgan qarz; umumiy qarz = to'langan + qolgan
-    final num totalOwed = model.totalPaid + model.remainder;
-    final paidShare = totalOwed > 0
-        ? (model.totalPaid / totalOwed).clamp(0, 1).toDouble()
-        : 1.0;
-
+    // remainder — firmaga hali to'lanmagan qarz. Naqd to'lab olingan tovar
+    // "To'langan"da turadi va qarzga qo'shilmaydi.
     return Column(
       children: [
         Expanded(
@@ -203,10 +199,10 @@ class FirmaInfoCard extends StatelessWidget {
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: _StatTile(
-                  label: tr("total_debt"),
-                  value: money(totalOwed),
+                  label: tr("firma_debt"),
+                  value: money(model.remainder),
                   icon: Icons.account_balance_wallet_rounded,
-                  color: AppColors.warning,
+                  color: AppColors.danger,
                 ),
               ),
             ],
@@ -214,27 +210,11 @@ class FirmaInfoCard extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         Expanded(
-          child: Row(
-            children: [
-              Expanded(
-                child: _StatTile(
-                  label: tr("paid"),
-                  value: money(model.totalPaid),
-                  icon: Icons.price_check_rounded,
-                  color: AppColors.success,
-                  progress: paidShare,
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: _StatTile(
-                  label: tr("remaining_debt"),
-                  value: money(model.remainder),
-                  icon: Icons.hourglass_bottom_rounded,
-                  color: AppColors.danger,
-                ),
-              ),
-            ],
+          child: _StatTile(
+            label: tr("paid"),
+            value: money(model.totalPaid),
+            icon: Icons.price_check_rounded,
+            color: AppColors.success,
           ),
         ),
       ],

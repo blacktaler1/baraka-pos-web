@@ -1,5 +1,6 @@
 import 'package:baraka_pos/shared/aplication/configs/di/injection_container.dart';
 import 'package:flutter/services.dart';
+import '../../domain/payload/delete_loan_payload.dart';
 import '../../domain/payload/update_loan_payload.dart';
 import '../../domain/repository/firma_repository.dart';
 import '../../../cash/presentation/widgets/thousands_separator_formatter.dart';
@@ -55,6 +56,13 @@ class _LoanTabState extends State<LoanTab> {
   int totalItems = 0;
   List<String?> cursors = [null];
 
+  void _reloadAll() {
+    _load(cursor: "");
+    context
+        .read<GetByIdFirmaBloc>()
+        .add(GetByIdFirmaStarted(id: widget.firmaId));
+  }
+
   void _edit(dynamic item) {
     showDialog(
       context: context,
@@ -62,16 +70,40 @@ class _LoanTabState extends State<LoanTab> {
         firmaId: widget.firmaId,
         loanId: item.id as int,
         title: item.title as String,
-        debt: item.debt as String,
+        amount: (widget.isDebt ? item.debt : item.paid) as String,
+        isDebt: widget.isDebt,
         onSaved: () {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text(tr("debt_updated"))));
-          _load(cursor: "");
-          context
-              .read<GetByIdFirmaBloc>()
-              .add(GetByIdFirmaStarted(id: widget.firmaId));
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text(tr(
+                  widget.isDebt ? "debt_updated" : "payment_updated"))));
+          _reloadAll();
         },
       ),
+    );
+  }
+
+  Future<void> _delete(dynamic item) async {
+    final confirmed = await showAppConfirm(
+      context,
+      title: tr(widget.isDebt ? "delete_debt" : "delete_payment"),
+      message: "${tr("are_you_sure")} '${item.title}'",
+      confirmLabel: tr("yes_delete"),
+      danger: true,
+    );
+    if (!confirmed || !mounted) return;
+    final result = await sl<FirmaRepository>().deleteLoan(
+      payload: DeleteLoanPayload(firmaId: widget.firmaId, loanId: item.id as int),
+    );
+    if (!mounted) return;
+    result.when(
+      success: (_) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text(
+                tr(widget.isDebt ? "debt_deleted" : "payment_deleted"))));
+        _reloadAll();
+      },
+      failure: (error) => ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(error.message))),
     );
   }
 
@@ -199,7 +231,7 @@ class _LoanTabState extends State<LoanTab> {
                       widget.isDebt
                           ? tr("debt_amount")
                           : tr("payment_amount_short"),
-                      if (widget.isDebt) "",
+                      "",
                     ],
                     numericColumns: const {2},
                     rows: items.map((item) {
@@ -278,17 +310,26 @@ class _LoanTabState extends State<LoanTab> {
                             ],
                           ),
                         ),
-                        if (widget.isDebt)
-                          DataCell(
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AppIconButton(
-                                  icon: Icons.edit_rounded,
-                                  tooltip: tr("edit_debt"),
-                                  color: AppColors.info,
-                                  onPressed: () => _edit(item),
-                                ),
+                        DataCell(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AppIconButton(
+                                icon: Icons.edit_rounded,
+                                tooltip: tr(widget.isDebt
+                                    ? "edit_debt"
+                                    : "edit_payment"),
+                                color: AppColors.info,
+                                onPressed: () => _edit(item),
+                              ),
+                              const SizedBox(width: AppSpacing.xxs),
+                              AppIconButton(
+                                icon: Icons.delete_rounded,
+                                tooltip: tr("delete"),
+                                color: AppColors.danger,
+                                onPressed: () => _delete(item),
+                              ),
+                              if (widget.isDebt) ...[
                                 const SizedBox(width: AppSpacing.xxs),
                                 AppButton.secondary(
                                   label: tr("pay_debt"),
@@ -303,8 +344,9 @@ class _LoanTabState extends State<LoanTab> {
                                   ),
                                 ),
                               ],
-                            ),
+                            ],
                           ),
+                        ),
                       ]);
                     }).toList(),
                   );
@@ -329,19 +371,23 @@ class _LoanTabState extends State<LoanTab> {
   }
 }
 
-/// Firma qarzini tahrirlash oynasi
+/// Firma qarzi yoki to'lovini tahrirlash oynasi
 class _EditLoanDialog extends StatefulWidget {
   final int firmaId;
   final int loanId;
   final String title;
-  final String debt;
+
+  /// Qarzda — qolgan qarz, to'lovda — to'langan summa
+  final String amount;
+  final bool isDebt;
   final VoidCallback onSaved;
 
   const _EditLoanDialog({
     required this.firmaId,
     required this.loanId,
     required this.title,
-    required this.debt,
+    required this.amount,
+    required this.isDebt,
     required this.onSaved,
   });
 
@@ -350,10 +396,10 @@ class _EditLoanDialog extends StatefulWidget {
 }
 
 class _EditLoanDialogState extends State<_EditLoanDialog> {
-  late final num _originalDebt = num.tryParse(widget.debt) ?? 0;
+  late final num _originalAmount = num.tryParse(widget.amount) ?? 0;
   late final _titleCtrl = TextEditingController(text: widget.title);
   late final _debtCtrl = TextEditingController(
-    text: formatCurrency(_originalDebt.toStringAsFixed(0), withCurrency: false),
+    text: formatCurrency(_originalAmount.toStringAsFixed(0), withCurrency: false),
   );
   bool _saving = false;
 
@@ -366,12 +412,14 @@ class _EditLoanDialogState extends State<_EditLoanDialog> {
 
   Future<void> _save() async {
     final title = _titleCtrl.text.trim();
-    final debt = parseAmount(_debtCtrl.text);
+    final amount = parseAmount(_debtCtrl.text);
+    final changed = amount != _originalAmount ? amount : null;
     final payload = UpdateLoanPayload(
       firmaId: widget.firmaId,
       loanId: widget.loanId,
       title: title != widget.title ? title : null,
-      debt: debt != _originalDebt ? debt : null,
+      debt: widget.isDebt ? changed : null,
+      paid: widget.isDebt ? null : changed,
     );
     if (payload.isEmpty) {
       Navigator.pop(context);
@@ -413,7 +461,10 @@ class _EditLoanDialogState extends State<_EditLoanDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(tr("edit_debt"), style: AppText.h2),
+                        Text(
+                          tr(widget.isDebt ? "edit_debt" : "edit_payment"),
+                          style: AppText.h2,
+                        ),
                         Text("#${widget.loanId}", style: AppText.small),
                       ],
                     ),
@@ -427,10 +478,12 @@ class _EditLoanDialogState extends State<_EditLoanDialog> {
               ),
               const SizedBox(height: AppSpacing.md),
               AppTextField(
-                label: tr("debt_amount"),
+                label: tr(widget.isDebt
+                    ? "debt_amount"
+                    : "payment_amount_short"),
                 controller: _debtCtrl,
-                prefix:
-                    const Icon(Icons.account_balance_wallet_rounded, size: 18),
+                prefix: const Icon(Icons.account_balance_wallet_rounded,
+                    size: 18),
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   FilteringTextInputFormatter.digitsOnly,

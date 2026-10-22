@@ -124,4 +124,24 @@ final class StoreRemouteSource extends RemoteSource {
       failure: (BaseException e) => e,
     );
   }
+
+  Future<Safed<BaseException, Json>> updateHistoryEntry({
+    required HistoryEntryRequest request,
+  }) {
+    return apiPatch(
+      path:
+          "/${globalUser?.warehouseUuid}/product/${request.pk}/history/${request.entryId}/",
+      request: request,
+    );
+  }
+
+  Future<Safed<BaseException, Json>> deleteHistoryEntry({
+    required HistoryEntryRequest request,
+  }) {
+    return apiDelete(
+      path:
+          "/${globalUser?.warehouseUuid}/product/${request.pk}/history/${request.entryId}/",
+      request: request,
+    );
+  }
 }

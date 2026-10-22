@@ -42,4 +42,12 @@ abstract class StoreRepository {
   Future<Safed<BaseException, ProductHistoryModel>> getProductHistory({
     required ProductHistoryPayload payload,
   });
+
+  Future<Safed<BaseException, Json>> updateHistoryEntry({
+    required HistoryEntryPayload payload,
+  });
+
+  Future<Safed<BaseException, Json>> deleteHistoryEntry({
+    required HistoryEntryPayload payload,
+  });
 }

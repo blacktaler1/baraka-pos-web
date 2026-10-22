@@ -1,3 +1,4 @@
+import 'package:baraka_pos/shared/aplication/types/json.dart';
 import 'package:baraka_pos/features/store/store.dart';
 import 'package:baraka_pos/shared/aplication/exceptions/base_exception.dart';
 import 'package:baraka_pos/shared/aplication/utils/safed.dart';
@@ -146,5 +147,23 @@ final class StoreRepositoryImpl extends StoreRepository {
           success: (dto) => dto.model(),
           failure: (BaseException e) => e,
         );
+  }
+
+  @override
+  Future<Safed<BaseException, Json>> updateHistoryEntry({
+    required HistoryEntryPayload payload,
+  }) {
+    return remote.updateHistoryEntry(
+      request: HistoryEntryRequest.fromPayload(payload),
+    );
+  }
+
+  @override
+  Future<Safed<BaseException, Json>> deleteHistoryEntry({
+    required HistoryEntryPayload payload,
+  }) {
+    return remote.deleteHistoryEntry(
+      request: HistoryEntryRequest.fromPayload(payload),
+    );
   }
 }

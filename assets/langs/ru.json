@@ -565,5 +565,22 @@
   "history_reason_other": "Другое",
   "history_purchase": "Закупка у фирмы",
   "history_partly_refunded": "В чеке продано {}, остальное возвращено",
-  "search_check_or_product": "ID чека, название товара или штрихкод"
+  "search_check_or_product": "ID чека, название товара или штрихкод",
+  "firma_debt": "Долг",
+  "edit_payment": "Изменить оплату",
+  "payment_updated": "Оплата обновлена",
+  "delete_debt": "Удалить долг",
+  "delete_payment": "Удалить оплату",
+  "debt_deleted": "Долг удалён",
+  "payment_deleted": "Оплата удалена",
+  "history_edit_title": "Исправить запись истории",
+  "history_edit_hint": "Меняется только запись в истории, остаток на складе не меняется.",
+  "history_note": "Комментарий",
+  "history_qty_invalid": "Количество должно быть больше 0",
+  "history_entry_updated": "Запись обновлена",
+  "history_entry_deleted": "Запись удалена",
+  "history_delete_title": "Удалить запись истории",
+  "history_delete_message": "Запись будет удалена из истории. Остаток на складе не изменится.",
+  "history_note_product_edit": "Изменено при редактировании товара",
+  "history_note_returned": "Возвращено фирме"
 }

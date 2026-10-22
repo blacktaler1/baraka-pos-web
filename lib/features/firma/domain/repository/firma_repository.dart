@@ -1,4 +1,5 @@
 import 'package:baraka_pos/shared/aplication/types/json.dart';
+import '../payload/delete_loan_payload.dart';
 import '../payload/update_loan_payload.dart';
 import 'package:baraka_pos/features/firma/domain/domain.dart';
 import 'package:baraka_pos/features/global/global.dart';
@@ -39,5 +40,9 @@ abstract class FirmaRepository {
   /// Firma qarzining tavsifi yoki qolgan summasini o'zgartirish
   Future<Safed<BaseException, Json>> updateLoan({
     required UpdateLoanPayload payload,
+  });
+
+  Future<Safed<BaseException, Json>> deleteLoan({
+    required DeleteLoanPayload payload,
   });
 }

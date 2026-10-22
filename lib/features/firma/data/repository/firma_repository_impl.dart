@@ -1,5 +1,7 @@
 import 'package:baraka_pos/shared/aplication/types/json.dart';
+import '../../domain/payload/delete_loan_payload.dart';
 import '../../domain/payload/update_loan_payload.dart';
+import '../request/delete_loan_request.dart';
 import '../request/update_loan_request.dart';
 import 'package:baraka_pos/features/firma/data/request/_request.dart';
 import 'package:baraka_pos/features/firma/domain/domain.dart';
@@ -129,5 +131,12 @@ final class FirmaRepositoryImpl extends FirmaRepository {
       loanId: payload.loanId,
       request: UpdateLoanRequest.fromPayload(payload),
     );
+  }
+
+  @override
+  Future<Safed<BaseException, Json>> deleteLoan({
+    required DeleteLoanPayload payload,
+  }) {
+    return remote.deleteLoan(request: DeleteLoanRequest.fromPayload(payload));
   }
 }
